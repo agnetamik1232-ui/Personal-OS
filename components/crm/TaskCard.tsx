@@ -1,7 +1,8 @@
 "use client";
 
-import type { TaskRow } from "@/app/api/tasks/route";
+import type { TaskRow }        from "@/app/api/tasks/route";
 import { urgencyToTier, TIERS } from "./tiers";
+import { localDateKey, dayDiff } from "@/lib/utils/localDate";
 
 interface Props {
   task:        TaskRow;
@@ -10,29 +11,28 @@ interface Props {
   dragHandleProps?: React.HTMLAttributes<HTMLDivElement>;
 }
 
+const TZ = "Europe/Vilnius";
+
 function fmtDate(iso: string | null): string | null {
   if (!iso) return null;
-  // Parse YYYY-MM-DD as local date (avoid UTC-midnight shift)
-  const [year, month, day] = iso.split("-").map(Number) as [number, number, number];
-  const due  = new Date(year, month - 1, day);
-  const now  = new Date();
-  now.setHours(0, 0, 0, 0);
-  const diff = Math.round((due.getTime() - now.getTime()) / 86_400_000);
-  if (diff < 0)  return `⚠ ${due.toLocaleDateString([], { month:"short", day:"numeric" })}`;
+  const todayKey = localDateKey();
+  const diff     = dayDiff(todayKey, iso);
+  if (diff < 0) {
+    const [y, m, d] = iso.split("-").map(Number) as [number, number, number];
+    const label = new Intl.DateTimeFormat("en-GB", { month: "short", day: "numeric", timeZone: TZ })
+      .format(new Date(Date.UTC(y, m - 1, d)));
+    return `⚠ ${label}`;
+  }
   if (diff === 0) return "Today";
   if (diff === 1) return "Tomorrow";
-  return due.toLocaleDateString([], { month: "short", day: "numeric" });
+  const [y, m, d] = iso.split("-").map(Number) as [number, number, number];
+  return new Intl.DateTimeFormat("en-GB", { month: "short", day: "numeric", timeZone: TZ })
+    .format(new Date(Date.UTC(y, m - 1, d)));
 }
 
 export function TaskCard({ task, isDragging, onOpen, dragHandleProps }: Props) {
   const tier   = TIERS.find((t) => t.id === urgencyToTier(task.urgency));
-  const isOver = (() => {
-    if (!task.due_date) return false;
-    const [y, m, d] = task.due_date.split("-").map(Number) as [number, number, number];
-    const due = new Date(y, m - 1, d);
-    const today = new Date(); today.setHours(0, 0, 0, 0);
-    return due < today;
-  })();
+  const isOver = task.due_date ? dayDiff(localDateKey(), task.due_date) < 0 : false;
 
   return (
     <div

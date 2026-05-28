@@ -3,6 +3,7 @@ import { createAdminClient }             from "@/lib/supabase/server";
 import { classifyCapture }               from "@/lib/router/classifyCapture";
 import { transcribeAudio }               from "@/lib/ai/transcribe";
 import { embedText }                     from "@/lib/ai/embed";
+import { localDateKey }                  from "@/lib/utils/localDate";
 import {
   sendMessage,
   answerCallbackQuery,
@@ -281,7 +282,7 @@ async function routeCapture(args: RouteArgs): Promise<{ routedTo: string | null;
 
   // daily_logs — habit_log, finance, health, decision, note
   if (["habit_log","finance","health","decision","note"].includes(classification.kind)) {
-    const today = new Date().toISOString().split("T")[0] as string;
+    const today = localDateKey();
 
     // Try to get today's log
     const { data: existing } = await supabase

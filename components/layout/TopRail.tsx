@@ -24,8 +24,9 @@ export function TopRail() {
     return () => clearInterval(id);
   }, []);
 
-  const time = now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-  const date = now.toLocaleDateString([], { weekday: "short", month: "short", day: "numeric" });
+  const tz   = OPERATOR.timezone;
+  const time = new Intl.DateTimeFormat("en-GB", { hour: "2-digit", minute: "2-digit", timeZone: tz }).format(now);
+  const date = new Intl.DateTimeFormat("en-GB", { weekday: "short", month: "short", day: "numeric", timeZone: tz }).format(now);
 
   // Derive initials from operator name
   const initials = OPERATOR.name

@@ -6,16 +6,9 @@ import { HABITS as DEFAULT_HABITS }                  from "@/lib/config/habits";
 import type { HabitConfig }                          from "@/lib/config/habits";
 import { HabitEditModal }                            from "@/components/ui/HabitEditModal";
 import type { HabitDayData, HabitsResponse }         from "@/app/api/habits/route";
+import { localDateKey }                              from "@/lib/utils/localDate";
 
 // ── Date helpers ──────────────────────────────────────────────────────────────
-
-/** "YYYY-MM-DD" using the user's LOCAL clock — never UTC. */
-function localDateKey(d: Date = new Date()): string {
-  const y  = d.getFullYear();
-  const m  = String(d.getMonth() + 1).padStart(2, "0");
-  const dd = String(d.getDate()).padStart(2, "0");
-  return `${y}-${m}-${dd}`;
-}
 
 function last7Keys(): string[] {
   const today = new Date();
@@ -27,8 +20,9 @@ function last7Keys(): string[] {
 }
 
 function dayLetter(dateKey: string): string {
-  const [y, mo, d] = dateKey.split("-").map(Number);
-  return new Date(y!, mo! - 1, d!).toLocaleDateString(undefined, { weekday: "narrow" });
+  const [y, mo, d] = dateKey.split("-").map(Number) as [number, number, number];
+  return new Intl.DateTimeFormat("en-GB", { weekday: "narrow", timeZone: "Europe/Vilnius" })
+    .format(new Date(Date.UTC(y, mo - 1, d)));
 }
 
 function dayNum(dateKey: string): number {

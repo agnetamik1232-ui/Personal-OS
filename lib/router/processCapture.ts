@@ -8,6 +8,7 @@
 import { classifyCapture, type Classification } from "./classifyCapture";
 import { embedText }                            from "@/lib/ai/embed";
 import { createAdminClient }                    from "@/lib/supabase/server";
+import { localDateKey }                         from "@/lib/utils/localDate";
 
 export type CaptureSource = "telegram" | "web" | "voice";
 
@@ -140,7 +141,7 @@ async function routeCapture(args: {
   }
 
   if (["habit_log","finance","health","decision","note"].includes(classification.kind)) {
-    const today = new Date().toISOString().split("T")[0] as string;
+    const today = localDateKey();
 
     const { data: existing } = await supabase
       .from("daily_logs")

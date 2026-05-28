@@ -12,6 +12,7 @@
 
 import { type NextRequest, NextResponse } from "next/server";
 import ICAL                               from "ical.js";
+import { localDateKey }                   from "@/lib/utils/localDate";
 
 // ── Public shape ─────────────────────────────────────────────────────────────
 
@@ -219,11 +220,12 @@ export async function GET(_req: NextRequest): Promise<NextResponse> {
   }
 
   const now         = new Date();
-  const windowStart = new Date(now);
-  windowStart.setHours(0, 0, 0, 0);                       // start of today
-
+  // Parse today's date in Vilnius timezone, then build UTC timestamps for the window
+  const todayKey    = localDateKey(now);                   // "YYYY-MM-DD" in Vilnius time
+  const [ty, tm, td] = todayKey.split("-").map(Number) as [number, number, number];
+  const windowStart = new Date(Date.UTC(ty, tm - 1, td)); // Vilnius midnight as UTC anchor
   const windowEnd   = new Date(windowStart);
-  windowEnd.setDate(windowEnd.getDate() + 14);             // +14 days
+  windowEnd.setUTCDate(windowEnd.getUTCDate() + 14);      // +14 days
 
   // Serve from cache if still fresh
   if (_cache && _cache.expiresAt > Date.now()) {
