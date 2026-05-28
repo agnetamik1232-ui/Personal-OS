@@ -1,13 +1,22 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { IconSearch } from "@/components/ui/Icon";
+import { useEffect, useState }  from "react";
+import { usePathname }           from "next/navigation";
+import Link                      from "next/link";
+import { IconSearch }            from "@/components/ui/Icon";
+import { OPERATOR }              from "@/lib/config/operator";
 
-const TABS = ["Home", "CRM", "Brain", "Finance", "Journal", "Health"] as const;
-type Tab = (typeof TABS)[number];
+const TABS = [
+  { label: "Home",    href: "/dashboard" },
+  { label: "CRM",     href: "/crm"       },
+  { label: "Brain",   href: "/memory"    },
+  { label: "Finance", href: "/finance"   },
+  { label: "Journal", href: "/habits"    },
+  { label: "Health",  href: "/health"    },
+] as const;
 
 export function TopRail() {
-  const [active, setActive] = useState<Tab>("Home");
+  const pathname = usePathname();
   const [now, setNow] = useState(new Date());
 
   useEffect(() => {
@@ -18,29 +27,42 @@ export function TopRail() {
   const time = now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
   const date = now.toLocaleDateString([], { weekday: "short", month: "short", day: "numeric" });
 
+  // Derive initials from operator name
+  const initials = OPERATOR.name
+    .split(" ")
+    .map((w) => w[0] ?? "")
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
+
   return (
     <div className="rail-wrap">
       <header className="rail">
         {/* Brand */}
-        <div className="rail-brand">
+        <Link href="/dashboard" className="rail-brand" aria-label="Dashboard home">
           <div className="rail-brand-mark">P</div>
           <div>
             <div className="rail-brand-name">Personal OS</div>
             <div className="rail-brand-sub">v1.0 · live</div>
           </div>
-        </div>
+        </Link>
 
-        {/* Tabs */}
+        {/* Nav tabs */}
         <nav className="rail-tabs" aria-label="Main navigation">
-          {TABS.map((tab) => (
-            <button
-              key={tab}
-              className={`rail-tab${active === tab ? " is-active" : ""}`}
-              onClick={() => setActive(tab)}
-            >
-              {tab}
-            </button>
-          ))}
+          {TABS.map((tab) => {
+            const isActive = pathname === tab.href ||
+              (tab.href !== "/dashboard" && pathname.startsWith(tab.href));
+            return (
+              <Link
+                key={tab.href}
+                href={tab.href}
+                className={`rail-tab${isActive ? " is-active" : ""}`}
+                aria-current={isActive ? "page" : undefined}
+              >
+                {tab.label}
+              </Link>
+            );
+          })}
         </nav>
 
         {/* Right cluster */}
@@ -56,7 +78,9 @@ export function TopRail() {
             <div className="rail-date">{date}</div>
           </div>
 
-          <button className="rail-avatar" aria-label="User menu">AG</button>
+          <button className="rail-avatar" aria-label="User menu" title={OPERATOR.name}>
+            {initials}
+          </button>
         </div>
       </header>
     </div>
