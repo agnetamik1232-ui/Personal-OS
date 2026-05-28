@@ -1,6 +1,4 @@
-import { OperatorCard }    from "./OperatorCard";
 import { FinanceCard }     from "./FinanceCard";
-import { BlockersCard }    from "./BlockersCard";
 import { SessionCard }     from "./SessionCard";
 import { HabitsCard }      from "./HabitsCard";
 import { NutritionCard }   from "./NutritionCard";
@@ -10,11 +8,9 @@ import { GoalsCard }       from "./GoalsCard";
 export function DashboardGrid() {
   return (
     <div className="dash-grid">
-      {/* ── Col 1: Operator / Finance / Blockers ── */}
+      {/* ── Col 1: Finance ── */}
       <div className="dash-col">
-        <OperatorCard />
         <FinanceCard />
-        <BlockersCard />
       </div>
 
       {/* ── Col 2: Session / Habits / Priorities / Goals ── */}

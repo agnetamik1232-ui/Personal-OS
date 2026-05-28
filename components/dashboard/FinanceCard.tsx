@@ -12,7 +12,7 @@ function fmt(v: number, currency: string) {
     style:                 "currency",
     currency,
     notation:              Math.abs(v) >= 1_000_000 ? "compact" : "standard",
-    maximumFractionDigits: Math.abs(v) >= 100_000   ? 0         : 0,
+    maximumFractionDigits: 0,
   }).format(v);
 }
 
@@ -22,15 +22,17 @@ function fmtDate(iso: string) {
   }).format(new Date(iso + "T12:00:00"));
 }
 
-const GROUP_COLORS: Record<FinanceCategory["group"], string> = {
-  asset:     "#2E6B45",
-  income:    "#C99C4A",
-  liability: "#B85C5C",
-  expense:   "#8F6B7A",
-  other:     "#6B7A8F",
+const GROUP_META: Record<FinanceCategory["group"], { color: string; label: string }> = {
+  asset:     { color: "#2E6B45", label: "Assets"      },
+  income:    { color: "#C99C4A", label: "Income"      },
+  liability: { color: "#B85C5C", label: "Liabilities" },
+  expense:   { color: "#8F6B7A", label: "Expenses"    },
+  other:     { color: "#6B7A8F", label: "Other"       },
 };
 
-// ── Card ─────────────────────────────────────────────────────────────────────
+const GROUP_ORDER: FinanceCategory["group"][] = ["asset", "income", "liability", "expense", "other"];
+
+// ── Card ──────────────────────────────────────────────────────────────────────
 
 export function FinanceCard() {
   const [snapshot, setSnapshot] = useState<FinanceSnapshot | null>(null);
@@ -40,74 +42,87 @@ export function FinanceCard() {
     fetch("/api/finance")
       .then((r) => r.json() as Promise<{ snapshot: FinanceSnapshot | null }>)
       .then(({ snapshot }) => setSnapshot(snapshot))
-      .catch(() => { /* silent — show empty state */ })
+      .catch(() => { /* silent */ })
       .finally(() => setLoading(false));
   }, []);
 
   const currency = snapshot?.currency ?? "EUR";
 
-  // Group by type for mini bars
-  const groups = snapshot ? (["asset", "income", "liability", "expense", "other"] as FinanceCategory["group"][])
-    .map((g) => ({
-      group: g,
-      total: snapshot.categories.filter((c) => c.group === g).reduce((s, c) => s + c.value, 0),
-    }))
-    .filter((g) => g.total !== 0) : [];
+  const groups = snapshot
+    ? GROUP_ORDER
+        .map((g) => ({
+          group: g,
+          ...GROUP_META[g],
+          total: snapshot.categories
+            .filter((c) => c.group === g)
+            .reduce((s, c) => s + c.value, 0),
+          items: snapshot.categories.filter((c) => c.group === g),
+        }))
+        .filter((g) => g.items.length > 0)
+    : [];
 
   const maxAbs = Math.max(...groups.map((g) => Math.abs(g.total)), 1);
 
   return (
-    <div className="card">
-      <svg className="card-deco" style={{ right: -20, bottom: -20, width: 100, height: 100 }} viewBox="0 0 100 100" aria-hidden>
-        <rect x="20" y="20" width="60" height="60" rx="14" fill="rgba(28,26,23,0.03)"/>
-      </svg>
-
+    <div className="card fin-card-large">
+      {/* Header */}
       <div className="card-head">
         <div>
           <div className="card-eyebrow"><IconCoin size={12} /> Finance Pulse</div>
-          <h3 className="card-title">
-            {loading
-              ? "Loading…"
-              : snapshot
-                ? fmt(snapshot.net_worth, currency)
-                : "No snapshot yet"}
-          </h3>
         </div>
         <Link href="/finance" className="card-action" title="Edit in Finance tab">Edit</Link>
       </div>
 
-      {!loading && snapshot && (
-        <>
-          <p className="fin-as-of" style={{ marginBottom: 14 }}>
-            As of {fmtDate(snapshot.as_of)}
-          </p>
+      {/* Big net worth */}
+      <div className="fin-nw-block">
+        {loading
+          ? <span className="fin-nw-loading">Loading…</span>
+          : snapshot
+            ? <>
+                <div className="fin-nw-val">{fmt(snapshot.net_worth, currency)}</div>
+                <div className="fin-nw-sub">Net worth · as of {fmtDate(snapshot.as_of)}</div>
+              </>
+            : <div className="fin-nw-empty">No data yet</div>
+        }
+      </div>
 
-          <div className="fin-categories">
-            {groups.map(({ group, total }) => (
-              <div className="fin-cat-row" key={group}>
-                <span className="fin-cat-name" style={{ textTransform: "capitalize" }}>{group}</span>
-                <div className="fin-cat-bar-wrap">
-                  <div
-                    className="fin-cat-bar-fill"
-                    style={{
-                      width:      `${Math.min(100, (Math.abs(total) / maxAbs) * 100)}%`,
-                      background: GROUP_COLORS[group],
-                    }}
-                  />
-                </div>
-                <span className="fin-cat-val" style={{ color: GROUP_COLORS[group] }}>
-                  {fmt(total, currency)}
-                </span>
+      {/* Category breakdown */}
+      {!loading && snapshot && groups.length > 0 && (
+        <div className="fin-breakdown">
+          {groups.map(({ group, label, color, total, items }) => (
+            <div className="fin-group" key={group}>
+              <div className="fin-group-head">
+                <span className="fin-group-label" style={{ color }}>{label}</span>
+                <span className="fin-group-total">{fmt(total, currency)}</span>
               </div>
-            ))}
-          </div>
-        </>
+              <div className="fin-group-bar-wrap">
+                <div
+                  className="fin-group-bar-fill"
+                  style={{
+                    width:      `${Math.min(100, (Math.abs(total) / maxAbs) * 100)}%`,
+                    background: color,
+                  }}
+                />
+              </div>
+              <div className="fin-items">
+                {items.map((item) => (
+                  <div className="fin-item" key={item.id}>
+                    <span className="fin-item-name">{item.name}</span>
+                    <span className="fin-item-val" style={{ color: item.value < 0 ? "#B85C5C" : undefined }}>
+                      {fmt(item.value, currency)}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
       )}
 
       {!loading && !snapshot && (
         <div className="fin-empty">
-          <p className="fin-empty-msg">No data yet.</p>
-          <Link href="/finance" className="fin-refresh-btn">Enter data →</Link>
+          <p className="fin-empty-msg">Add your accounts and balances to track net worth.</p>
+          <Link href="/finance" className="fin-refresh-btn">Get started →</Link>
         </div>
       )}
     </div>

@@ -3185,3 +3185,68 @@
 .fe-sg-total       { font-family: var(--font-mono), monospace; font-size: 13px; font-variant-numeric: tabular-nums; color: var(--ink-hex); }
 .fe-sg-bar-wrap    { height: 5px; background: rgba(28,26,23,0.08); border-radius: 3px; overflow: hidden; }
 .fe-sg-bar-fill    { height: 100%; border-radius: 3px; transition: width 0.3s; }
+
+/* ── Finance card — large variant ───────────────────────────────────────────── */
+
+.fin-card-large { padding: 24px; }
+
+.fin-nw-block   { margin: 20px 0 28px; }
+.fin-nw-val     {
+  font-size:      42px;
+  font-weight:    600;
+  letter-spacing: -0.035em;
+  color:          var(--ink-hex);
+  line-height:    1;
+}
+.fin-nw-sub     { font-size: 12px; color: var(--muted); margin-top: 6px; }
+.fin-nw-loading { font-size: 14px; color: var(--muted); }
+.fin-nw-empty   { font-size: 15px; color: var(--muted); }
+
+/* breakdown groups */
+.fin-breakdown  { display: flex; flex-direction: column; gap: 20px; }
+.fin-group      { display: flex; flex-direction: column; gap: 6px; }
+.fin-group-head {
+  display:         flex;
+  justify-content: space-between;
+  align-items:     baseline;
+}
+.fin-group-label {
+  font-size:      11px;
+  font-weight:    700;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+}
+.fin-group-total {
+  font-family:          var(--font-mono), monospace;
+  font-size:            14px;
+  font-variant-numeric: tabular-nums;
+  font-weight:          500;
+  color:                var(--ink-hex);
+}
+.fin-group-bar-wrap {
+  height:        6px;
+  background:    rgba(28,26,23,0.07);
+  border-radius: 4px;
+  overflow:      hidden;
+}
+.fin-group-bar-fill { height: 100%; border-radius: 4px; transition: width 0.4s ease; }
+
+/* individual line items */
+.fin-items    { display: flex; flex-direction: column; gap: 3px; margin-top: 4px; }
+.fin-item     {
+  display:         flex;
+  justify-content: space-between;
+  padding:         3px 0;
+  border-bottom:   1px solid rgba(28,26,23,0.05);
+}
+.fin-item:last-child { border-bottom: none; }
+.fin-item-name {
+  font-size: 12.5px;
+  color:     var(--ink-2-hex);
+}
+.fin-item-val {
+  font-family:          var(--font-mono), monospace;
+  font-size:            12.5px;
+  font-variant-numeric: tabular-nums;
+  color:                var(--ink-hex);
+}
