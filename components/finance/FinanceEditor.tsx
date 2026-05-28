@@ -262,7 +262,7 @@ export function FinanceEditor() {
             {saving ? "Saving…" : saved ? "✓ Saved" : "Save snapshot"}
           </button>
           {cats.length === 0 && (
-            <p className="fe-hint">Use the "+ Add" buttons above to add your accounts and balances.</p>
+            <p className="fe-hint">{'Use the "+ Add" buttons above to add your accounts and balances.'}</p>
           )}
         </div>
       </div>
