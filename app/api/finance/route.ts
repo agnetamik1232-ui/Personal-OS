@@ -1,58 +1,88 @@
 /**
- * GET /api/finance
+ * GET  /api/finance  → latest FinanceSnapshot or null
+ * POST /api/finance  → save a new FinanceSnapshot (manual entry)
  *
- * Reads the most recent finance snapshot from daily_logs.notes.finance.
- * NO AI is triggered here — this is a pure Supabase read.
- * Returns { snapshot: FinanceSnapshot | null, as_of_date: string | null }.
+ * Stored in daily_logs.notes.finance on the sentinel date 2000-01-02
+ * so it never auto-clears (same pattern as goals).
  */
 
-import { NextResponse }    from "next/server";
-import { createAdminClient } from "@/lib/supabase/server";
-import type { FinanceSnapshot, FinanceCategory } from "./snapshot/route";
+import { type NextRequest, NextResponse } from "next/server";
+import { createAdminClient }              from "@/lib/supabase/server";
 
-export type { FinanceSnapshot, FinanceCategory };
-
-export interface FinanceGetResponse {
-  snapshot:    FinanceSnapshot | null;
-  as_of_date:  string | null;   // the daily_logs.log_date the snapshot came from
+export interface FinanceCategory {
+  id:    string;
+  name:  string;
+  value: number;   // positive = asset/income, negative = liability/expense
+  group: "asset" | "liability" | "income" | "expense" | "other";
 }
 
-function ownerUserId(): string {
-  const v = process.env["OWNER_USER_ID"];
-  if (!v) throw new Error("OWNER_USER_ID not set");
-  return v;
+export interface FinanceSnapshot {
+  net_worth:  number;
+  currency:   string;
+  as_of:      string;          // YYYY-MM-DD
+  categories: FinanceCategory[];
+  updated_at: string;          // ISO timestamp
 }
 
-type RawRow = { log_date: string; notes: string | null };
+const SENTINEL   = "2000-01-02";
+const NOTES_KEY  = "finance";
+
+type RawRow = { id: string; notes: string | null };
+
+async function getRow() {
+  const supabase = await createAdminClient();
+  const { data } = await supabase
+    .from("daily_logs")
+    .select("id, notes")
+    .eq("log_date", SENTINEL)
+    .maybeSingle();
+  const row = data as RawRow | null;
+  let notes: Record<string, unknown> = {};
+  try { notes = JSON.parse(row?.notes ?? "{}") as Record<string, unknown>; } catch { /**/ }
+  return { supabase, row, notes };
+}
 
 export async function GET(): Promise<NextResponse> {
   try {
-    const userId   = ownerUserId();
-    const supabase = await createAdminClient();
+    const { notes } = await getRow();
+    const snap = notes[NOTES_KEY] as FinanceSnapshot | undefined;
+    return NextResponse.json({ snapshot: snap ?? null });
+  } catch (e) {
+    return NextResponse.json({ error: e instanceof Error ? e.message : "Error" }, { status: 500 });
+  }
+}
 
-    // Grab the most recent 60 rows; scan for the first that has a finance snapshot
-    const { data, error } = await supabase
-      .from("daily_logs")
-      .select("log_date, notes")
-      .eq("user_id", userId)
-      .order("log_date", { ascending: false })
-      .limit(60);
+export async function POST(req: NextRequest): Promise<NextResponse> {
+  try {
+    const userId   = process.env["OWNER_USER_ID"];
+    if (!userId) return NextResponse.json({ error: "OWNER_USER_ID not set" }, { status: 500 });
 
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-
-    for (const raw of ((data ?? []) as RawRow[])) {
-      let notes: Record<string, unknown> = {};
-      try { notes = JSON.parse(raw.notes ?? "{}") as Record<string, unknown>; } catch { continue; }
-      const fin = notes["finance"] as FinanceSnapshot | undefined;
-      if (fin?.net_worth != null) {
-        return NextResponse.json({
-          snapshot:   fin,
-          as_of_date: raw.log_date,
-        } satisfies FinanceGetResponse);
-      }
+    const body = await req.json() as Partial<FinanceSnapshot>;
+    if (body.net_worth == null || !body.currency || !body.as_of) {
+      return NextResponse.json({ error: "net_worth, currency and as_of required" }, { status: 400 });
     }
 
-    return NextResponse.json({ snapshot: null, as_of_date: null } satisfies FinanceGetResponse);
+    const snapshot: FinanceSnapshot = {
+      net_worth:  body.net_worth,
+      currency:   body.currency,
+      as_of:      body.as_of,
+      categories: body.categories ?? [],
+      updated_at: new Date().toISOString(),
+    };
+
+    const { supabase, row, notes } = await getRow();
+    notes[NOTES_KEY] = snapshot;
+
+    if (row) {
+      await supabase.from("daily_logs")
+        .update({ notes: JSON.stringify(notes) } as never)
+        .eq("id", row.id);
+    } else {
+      await supabase.from("daily_logs")
+        .insert({ log_date: SENTINEL, user_id: userId, notes: JSON.stringify(notes) } as never);
+    }
+
+    return NextResponse.json({ ok: true, snapshot });
   } catch (e) {
     return NextResponse.json({ error: e instanceof Error ? e.message : "Error" }, { status: 500 });
   }
