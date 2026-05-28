@@ -1283,6 +1283,9 @@
   border-radius: 10px;
 }
 
+/* Card slot wraps one draggable card + its following drop zone */
+.crm-card-slot { display: flex; flex-direction: column; }
+
 /* Drop zones */
 .crm-drop-zone {
   height:        6px;

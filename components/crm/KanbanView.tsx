@@ -14,13 +14,16 @@ interface Props {
   onReorder: (tasks: TaskRow[]) => void;
 }
 
-/** Compute a priority_score that places a task between two neighbours. */
+/**
+ * Compute a priority_score that places a task between two neighbours.
+ * Tasks are sorted DESC, so "above" has a HIGHER score than "below".
+ */
 function midScore(above: TaskRow | undefined, below: TaskRow | undefined): number {
   const a = above?.priority_score ?? null;
   const b = below?.priority_score ?? null;
   if (a === null && b === null) return 50;
-  if (a === null) return (b ?? 50) + 10;
-  if (b === null) return a + 10;
+  if (a === null) return (b ?? 50) + 10;   // dropped at top  → score above the top card
+  if (b === null) return a - 10;            // dropped at bottom → score below the bottom card
   return (a + b) / 2;
 }
 
@@ -50,10 +53,6 @@ export function KanbanView({ tasks, onOpen, onNewTask, onUpdate, onReorder }: Pr
     setDropState((prev) =>
       prev?.col === col && prev?.idx === idx ? prev : { col, idx }
     );
-  }
-
-  function handleDragLeaveCol() {
-    // Only clear if mouse truly left the column — handled by drop/dragend
   }
 
   function handleDrop(e: React.DragEvent, col: TierId, dropIdx: number) {
@@ -114,15 +113,14 @@ export function KanbanView({ tasks, onOpen, onNewTask, onUpdate, onReorder }: Pr
               >+</button>
             </div>
 
-            {/* Drop zone at top (index 0) */}
-            <div
-              className={`crm-drop-zone${dropState?.col === tier.id && dropState.idx === 0 ? " crm-drop-zone-active" : ""}`}
-              onDragOver={(e) => handleDragOver(e, tier.id, 0)}
-              onDrop={(e) => handleDrop(e, tier.id, 0)}
-            />
-
-            {/* Cards */}
+            {/* Cards — drop zones are siblings of draggable wrappers, not children */}
             <div className="crm-col-cards">
+              {/* Drop zone at top (index 0) */}
+              <div
+                className={`crm-drop-zone${dropState?.col === tier.id && dropState.idx === 0 ? " crm-drop-zone-active" : ""}`}
+                onDragOver={(e) => handleDragOver(e, tier.id, 0)}
+                onDrop={(e) => handleDrop(e, tier.id, 0)}
+              />
               {col.length === 0 && (
                 <div
                   className="crm-col-empty"
@@ -133,24 +131,19 @@ export function KanbanView({ tasks, onOpen, onNewTask, onUpdate, onReorder }: Pr
                 </div>
               )}
               {col.map((task, idx) => (
-                <div
-                  key={task.id}
-                  draggable
-                  onDragStart={(e) => handleDragStart(e, task.id)}
-                  onDragEnd={handleDragEnd}
-                  style={{ opacity: draggingId.current === task.id ? 0.4 : 1 }}
-                >
-                  <TaskCard
-                    task={task}
-                    onOpen={onOpen}
-                    isDragging={draggingId.current === task.id}
-                  />
-                  {/* Drop zone after each card */}
+                <div key={task.id} className="crm-card-slot">
+                  <div
+                    draggable
+                    onDragStart={(e) => handleDragStart(e, task.id)}
+                    onDragEnd={handleDragEnd}
+                  >
+                    <TaskCard task={task} onOpen={onOpen} />
+                  </div>
+                  {/* Drop zone AFTER each card — sibling, not child of draggable */}
                   <div
                     className={`crm-drop-zone${dropState?.col === tier.id && dropState.idx === idx + 1 ? " crm-drop-zone-active" : ""}`}
                     onDragOver={(e) => handleDragOver(e, tier.id, idx + 1)}
                     onDrop={(e) => handleDrop(e, tier.id, idx + 1)}
-                    onDragLeave={() => handleDragLeaveCol()}
                   />
                 </div>
               ))}
