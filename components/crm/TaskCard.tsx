@@ -12,18 +12,27 @@ interface Props {
 
 function fmtDate(iso: string | null): string | null {
   if (!iso) return null;
-  const d    = new Date(iso);
+  // Parse YYYY-MM-DD as local date (avoid UTC-midnight shift)
+  const [year, month, day] = iso.split("-").map(Number) as [number, number, number];
+  const due  = new Date(year, month - 1, day);
   const now  = new Date();
-  const diff = Math.ceil((d.getTime() - now.setHours(0,0,0,0)) / 86_400_000);
-  if (diff < 0)  return `⚠ ${d.toLocaleDateString([], { month:"short", day:"numeric" })}`;
+  now.setHours(0, 0, 0, 0);
+  const diff = Math.round((due.getTime() - now.getTime()) / 86_400_000);
+  if (diff < 0)  return `⚠ ${due.toLocaleDateString([], { month:"short", day:"numeric" })}`;
   if (diff === 0) return "Today";
   if (diff === 1) return "Tomorrow";
-  return d.toLocaleDateString([], { month: "short", day: "numeric" });
+  return due.toLocaleDateString([], { month: "short", day: "numeric" });
 }
 
 export function TaskCard({ task, isDragging, onOpen, dragHandleProps }: Props) {
   const tier   = TIERS.find((t) => t.id === urgencyToTier(task.urgency));
-  const isOver = task.due_date && new Date(task.due_date) < new Date();
+  const isOver = (() => {
+    if (!task.due_date) return false;
+    const [y, m, d] = task.due_date.split("-").map(Number) as [number, number, number];
+    const due = new Date(y, m - 1, d);
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    return due < today;
+  })();
 
   return (
     <div
