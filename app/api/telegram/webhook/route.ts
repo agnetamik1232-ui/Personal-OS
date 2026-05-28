@@ -46,17 +46,27 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
 
-  // ── Handle callback_query (urgency button tap) ────────────────────────────
-  if (update.callback_query) {
-    await handleCallbackQuery(update.callback_query);
-    return NextResponse.json({ ok: true });
+  // ── Always return 200 to Telegram — non-200 causes retries ─────────────────
+  try {
+    if (update.callback_query) {
+      await handleCallbackQuery(update.callback_query);
+    } else if (update.message) {
+      await handleMessage(update.message);
+    }
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    console.error("[webhook] unhandled error:", msg);
+
+    // Try to notify the user via Telegram so they can see what broke
+    const chatId = update.message?.chat.id ?? update.callback_query?.message?.chat.id;
+    if (chatId) {
+      try {
+        await sendMessage(chatId, `⚠️ *Internal error:*\n\`${msg}\``);
+      } catch { /* ignore secondary failure */ }
+    }
   }
 
-  // ── Handle regular message ────────────────────────────────────────────────
-  if (update.message) {
-    await handleMessage(update.message);
-  }
-
+  // Always 200 — Telegram won't retry
   return NextResponse.json({ ok: true });
 }
 
