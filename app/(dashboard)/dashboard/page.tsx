@@ -1,4 +1,3 @@
-import { Panel } from "@/components/ui/Panel";
 import { KpiCard } from "@/components/dashboard/KpiCard";
 import { DashboardGrid } from "@/components/dashboard/DashboardGrid";
 
@@ -14,7 +13,7 @@ export default function DashboardPage() {
           Good morning, Agneta
         </h1>
         <p className="text-sm text-ink-3 mt-1">
-          Here's what's happening across your systems today.
+          Here&apos;s what&apos;s happening across your systems today.
         </p>
       </div>
 
