@@ -1,41 +1,64 @@
 "use client";
 
-import { Bell, Search, SunMedium } from "lucide-react";
-import { cn } from "@/lib/utils/cn";
+import { useState, useEffect } from "react";
+import { IconSearch } from "@/components/ui/Icon";
 
-interface TopRailProps {
-  className?: string;
-}
+const TABS = ["Home", "CRM", "Brain", "Finance", "Journal", "Health"] as const;
+type Tab = (typeof TABS)[number];
 
-export function TopRail({ className }: TopRailProps) {
+export function TopRail() {
+  const [active, setActive] = useState<Tab>("Home");
+  const [now, setNow] = useState(new Date());
+
+  useEffect(() => {
+    const id = setInterval(() => setNow(new Date()), 30_000);
+    return () => clearInterval(id);
+  }, []);
+
+  const time = now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  const date = now.toLocaleDateString([], { weekday: "short", month: "short", day: "numeric" });
+
   return (
-    <header
-      className={cn(
-        "flex items-center justify-between px-6 lg:px-8 flex-shrink-0 bg-ink-0 border-b border-ink-2/60",
-        className
-      )}
-      style={{ height: "var(--header-h)" }}
-    >
-      {/* Left — breadcrumb / search trigger */}
-      <button className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-ink-1 border border-ink-2/60 text-sm text-ink-3 hover:text-ink-4 hover:border-ink-2 transition-all duration-150 group min-w-48">
-        <Search size={14} className="text-ink-3 group-hover:text-accent transition-colors duration-150" />
-        <span>Search or ask anything…</span>
-        <span className="ml-auto font-mono text-xs text-ink-3/60 bg-ink-2/40 px-1 rounded">
-          ⌘K
-        </span>
-      </button>
+    <div className="rail-wrap">
+      <header className="rail">
+        {/* Brand */}
+        <div className="rail-brand">
+          <div className="rail-brand-mark">P</div>
+          <div>
+            <div className="rail-brand-name">Personal OS</div>
+            <div className="rail-brand-sub">v1.0 · live</div>
+          </div>
+        </div>
 
-      {/* Right — actions */}
-      <div className="flex items-center gap-1">
-        <button className="btn-icon btn-ghost text-ink-3" aria-label="Toggle theme">
-          <SunMedium size={16} />
-        </button>
-        <button className="btn-icon btn-ghost text-ink-3 relative" aria-label="Notifications">
-          <Bell size={16} />
-          {/* Notification dot */}
-          <span className="absolute top-2 right-2 w-1.5 h-1.5 rounded-full bg-accent" />
-        </button>
-      </div>
-    </header>
+        {/* Tabs */}
+        <nav className="rail-tabs" aria-label="Main navigation">
+          {TABS.map((tab) => (
+            <button
+              key={tab}
+              className={`rail-tab${active === tab ? " is-active" : ""}`}
+              onClick={() => setActive(tab)}
+            >
+              {tab}
+            </button>
+          ))}
+        </nav>
+
+        {/* Right cluster */}
+        <div className="rail-right">
+          <button className="rail-search" aria-label="Search">
+            <IconSearch size={13} />
+            <span>Ask anything</span>
+            <span className="kbd">⌘K</span>
+          </button>
+
+          <div className="rail-datetime" aria-label="Current time">
+            <div className="rail-time">{time}</div>
+            <div className="rail-date">{date}</div>
+          </div>
+
+          <button className="rail-avatar" aria-label="User menu">AG</button>
+        </div>
+      </header>
+    </div>
   );
 }
