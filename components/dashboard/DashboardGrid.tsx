@@ -5,6 +5,7 @@ import { SessionCard }     from "./SessionCard";
 import { HabitsCard }      from "./HabitsCard";
 import { PrioritiesCard }  from "./PrioritiesCard";
 import { NutritionCard }   from "./NutritionCard";
+import { CalendarCard }    from "./CalendarCard";
 
 export function DashboardGrid() {
   return (
@@ -23,8 +24,9 @@ export function DashboardGrid() {
         <PrioritiesCard />
       </div>
 
-      {/* ── Col 3: Nutrition ── */}
+      {/* ── Col 3: Calendar / Nutrition ── */}
       <div className="dash-col">
+        <CalendarCard />
         <NutritionCard />
       </div>
     </div>
