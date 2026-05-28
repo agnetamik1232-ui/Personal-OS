@@ -1,5 +1,6 @@
-import { TopRail } from "./TopRail";
-import { HeroStrip } from "./HeroStrip";
+import { TopRail }    from "./TopRail";
+import { HeroStrip }  from "./HeroStrip";
+import { CaptureBox } from "@/components/ui/CaptureBox";
 
 interface ShellProps {
   children: React.ReactNode;
@@ -14,6 +15,7 @@ export function Shell({ children, showHero = true }: ShellProps) {
         {showHero && <HeroStrip />}
         {children}
       </div>
+      <CaptureBox />
     </div>
   );
 }
