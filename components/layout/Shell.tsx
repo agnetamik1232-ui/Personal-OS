@@ -1,18 +1,15 @@
 import { TopRail }    from "./TopRail";
-import { HeroStrip }  from "./HeroStrip";
 import { CaptureBox } from "@/components/ui/CaptureBox";
 
 interface ShellProps {
-  children: React.ReactNode;
-  showHero?: boolean;
+  children:  React.ReactNode;
 }
 
-export function Shell({ children, showHero = true }: ShellProps) {
+export function Shell({ children }: ShellProps) {
   return (
     <div className="shell-bg">
       <TopRail />
       <div className="shell-page">
-        {showHero && <HeroStrip />}
         {children}
       </div>
       <CaptureBox />
