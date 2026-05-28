@@ -4,8 +4,9 @@ import { verifySession, verifyApiSecret, AUTH_COOKIE } from "@/lib/auth";
 // Routes that never require authentication
 const PUBLIC_PREFIXES = [
   "/login",
-  "/api/auth",       // login / logout endpoints
-  "/api/webhooks",   // Telegram and other inbound webhooks
+  "/api/auth",             // login / logout endpoints
+  "/api/webhooks",         // generic webhook prefix
+  "/api/telegram/webhook", // authenticated via x-telegram-bot-api-secret-token header
 ];
 
 function isPublic(pathname: string): boolean {
