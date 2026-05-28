@@ -6,7 +6,7 @@
 create extension if not exists vector with schema extensions;
 
 -- ─── Helper: auto-update updated_at ─────────────────────────────────────────
-create or replace function private.set_updated_at()
+create or replace function public.set_updated_at()
 returns trigger
 language plpgsql
 as $$
@@ -86,7 +86,7 @@ create index tasks_priority_idx     on public.tasks (user_id, priority_score des
 
 create trigger tasks_set_updated_at
   before update on public.tasks
-  for each row execute function private.set_updated_at();
+  for each row execute function public.set_updated_at();
 
 -- ════════════════════════════════════════════════════════════════════════════
 -- TABLE: daily_logs
@@ -109,7 +109,7 @@ create index daily_logs_user_date_idx on public.daily_logs (user_id, log_date de
 
 create trigger daily_logs_set_updated_at
   before update on public.daily_logs
-  for each row execute function private.set_updated_at();
+  for each row execute function public.set_updated_at();
 
 -- ════════════════════════════════════════════════════════════════════════════
 -- TABLE: memory_chunks
