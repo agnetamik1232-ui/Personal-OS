@@ -9,7 +9,6 @@ import { OPERATOR }              from "@/lib/config/operator";
 const TABS = [
   { label: "Home",    href: "/dashboard" },
   { label: "CRM",     href: "/crm"       },
-  { label: "Brain",   href: "/memory"    },
   { label: "Finance", href: "/finance"   },
   { label: "Journal", href: "/habits"    },
   { label: "Health",  href: "/health"    },
