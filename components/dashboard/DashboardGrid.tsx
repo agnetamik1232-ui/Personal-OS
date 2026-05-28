@@ -3,7 +3,6 @@ import { FinanceCard }     from "./FinanceCard";
 import { BlockersCard }    from "./BlockersCard";
 import { SessionCard }     from "./SessionCard";
 import { HabitsCard }      from "./HabitsCard";
-import { PrioritiesCard }  from "./PrioritiesCard";
 import { NutritionCard }   from "./NutritionCard";
 import { CalendarCard }    from "./CalendarCard";
 import { GoalsCard }       from "./GoalsCard";
@@ -22,7 +21,6 @@ export function DashboardGrid() {
       <div className="dash-col">
         <SessionCard />
         <HabitsCard />
-        <PrioritiesCard />
         <GoalsCard />
       </div>
 
