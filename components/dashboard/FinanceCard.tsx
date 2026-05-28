@@ -1,26 +1,118 @@
-import { IconCoin } from "@/components/ui/Icon";
+"use client";
 
-const SPARK_DATA = [22, 28, 24, 31, 27, 34, 30, 38, 36, 42, 39, 46];
-const W = 260, H = 60;
+import { useState, useEffect, useCallback } from "react";
+import { IconCoin }                          from "@/components/ui/Icon";
+import type { FinanceGetResponse, FinanceSnapshot, FinanceCategory } from "@/app/api/finance/route";
 
-function buildSparkPath(data: number[]): { line: string; area: string } {
-  const max = Math.max(...data);
-  const min = Math.min(...data);
-  const range = max - min || 1;
-  const px = (i: number) => (i / (data.length - 1)) * W;
-  const py = (v: number) => H - ((v - min) / range) * (H - 8) - 4;
-  const pts = data.map((v, i) => `${i === 0 ? "M" : "L"} ${px(i).toFixed(1)} ${py(v).toFixed(1)}`).join(" ");
-  return { line: pts, area: `${pts} L ${W} ${H} L 0 ${H} Z` };
+// ── Helpers ───────────────────────────────────────────────────────────────────
+
+function fmt(value: number, currency: string): string {
+  return new Intl.NumberFormat("en-GB", {
+    style:                 "currency",
+    currency,
+    notation:              Math.abs(value) >= 1_000_000 ? "compact" : "standard",
+    maximumFractionDigits: Math.abs(value) >= 100_000   ? 0         : 2,
+  }).format(value);
 }
 
-const ROWS = [
-  { label: "Income MTD",       color: "#2E6B45", value: "+ €12,450" },
-  { label: "Burn MTD",         color: "#B85C5C", value: "– €7,830"  },
-  { label: "Pending invoices", color: "#C99C4A", value: "€4,200"    },
-] as const;
+function fmtDate(iso: string): string {
+  return new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "short", year: "numeric" }).format(new Date(iso));
+}
+
+function categoryColor(value: number, idx: number): string {
+  if (value < 0) return "#B85C5C";
+  const COLORS = ["#2E6B45", "#C99C4A", "#7A8F6B", "#6B7A8F", "#8F6B7A", "#4A7AC9"];
+  return COLORS[idx % COLORS.length]!;
+}
+
+// ── Category bar chart ────────────────────────────────────────────────────────
+
+function CategoryBars({ categories, currency }: { categories: FinanceCategory[]; currency: string }) {
+  const max = Math.max(...categories.map((c) => Math.abs(c.value)), 1);
+  return (
+    <div className="fin-categories">
+      {categories.map((cat, i) => {
+        const pct   = Math.min(100, (Math.abs(cat.value) / max) * 100);
+        const color = categoryColor(cat.value, i);
+        return (
+          <div className="fin-cat-row" key={cat.name}>
+            <span className="fin-cat-name">{cat.name}</span>
+            <div className="fin-cat-bar-wrap">
+              <div className="fin-cat-bar-fill" style={{ width: `${pct}%`, background: color }} />
+            </div>
+            <span className="fin-cat-val" style={{ color }}>
+              {cat.value >= 0 ? "" : "–"}{fmt(Math.abs(cat.value), currency)}
+            </span>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+// ── Empty / error states ──────────────────────────────────────────────────────
+
+function EmptyState({ onRefresh, refreshing }: { onRefresh: () => void; refreshing: boolean }) {
+  return (
+    <div className="fin-empty">
+      <p className="fin-empty-msg">No snapshot yet. Run a refresh to pull from Google Sheets.</p>
+      <button className="fin-refresh-btn" onClick={onRefresh} disabled={refreshing}>
+        {refreshing ? <span className="fin-spin">↻</span> : "↻ Fetch now"}
+      </button>
+    </div>
+  );
+}
+
+// ── Main card ─────────────────────────────────────────────────────────────────
 
 export function FinanceCard() {
-  const { line, area } = buildSparkPath(SPARK_DATA);
+  const [snapshot,   setSnapshot]   = useState<FinanceSnapshot | null>(null);
+  const [asOfDate,   setAsOfDate]   = useState<string | null>(null);
+  const [loading,    setLoading]    = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [error,      setError]      = useState<string | null>(null);
+
+  // ── Load snapshot (NO AI, pure Supabase read) ──
+  const load = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res  = await fetch("/api/finance");
+      const json = await res.json() as FinanceGetResponse & { error?: string };
+      if (!res.ok) { setError(json.error ?? "Load failed"); return; }
+      setSnapshot(json.snapshot);
+      setAsOfDate(json.as_of_date);
+    } catch {
+      setError("Network error");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => { void load(); }, [load]);
+
+  // ── Manual refresh → triggers AI pipeline ──
+  async function handleRefresh() {
+    // Calls the thin server-side relay which injects CRON_SECRET — secret never touches client
+    setRefreshing(true);
+    setError(null);
+    try {
+      const res  = await fetch("/api/finance/refresh", { method: "POST" });
+      const json = await res.json() as { snapshot?: FinanceSnapshot; error?: string };
+      if (!res.ok) { setError(json.error ?? "Refresh failed"); return; }
+      if (json.snapshot) {
+        setSnapshot(json.snapshot);
+        setAsOfDate(new Date().toISOString().split("T")[0]!);
+      }
+    } catch {
+      setError("Network error");
+    } finally {
+      setRefreshing(false);
+    }
+  }
+
+  // ── Render ──
+  const currency = snapshot?.currency ?? "EUR";
 
   return (
     <div className="card">
@@ -31,42 +123,43 @@ export function FinanceCard() {
       <div className="card-head">
         <div>
           <div className="card-eyebrow"><IconCoin size={12} /> Finance Pulse</div>
-          <h3 className="card-title">Cash on hand</h3>
+          <h3 className="card-title">
+            {loading ? "Loading…" : snapshot ? fmt(snapshot.net_worth, currency) : "Net worth"}
+          </h3>
         </div>
-        <button className="card-action">May</button>
+        {!loading && snapshot && (
+          <button
+            className={`card-action${refreshing ? " card-action-spin" : ""}`}
+            onClick={() => void handleRefresh()}
+            disabled={refreshing}
+            title="Re-fetch from Google Sheets"
+          >
+            {refreshing ? "…" : "↻"}
+          </button>
+        )}
       </div>
 
-      <div className="fin-head">
-        <div className="fin-amount">€48,212</div>
-        <div className="fin-delta">+4.8%</div>
-      </div>
-      <div className="fin-label">vs. last month · runway 8.2 mo</div>
+      {loading && <div className="fin-loading">Loading snapshot…</div>}
+      {error   && <p className="fin-error">⚠ {error}</p>}
 
-      <div className="fin-spark">
-        <svg viewBox={`0 0 ${W} ${H}`} width="100%" height={H} preserveAspectRatio="none">
-          <defs>
-            <linearGradient id="finGrad" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%"   stopColor="#2E6B45" stopOpacity="0.18"/>
-              <stop offset="100%" stopColor="#2E6B45" stopOpacity="0"/>
-            </linearGradient>
-          </defs>
-          <path d={area} fill="url(#finGrad)"/>
-          <path d={line} fill="none" stroke="#2E6B45" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
-          <circle cx={W} cy={60 - ((46 - 22) / (46 - 22)) * (60 - 8) - 4} r="3" fill="#2E6B45"/>
-        </svg>
-      </div>
+      {!loading && !snapshot && !error && (
+        <EmptyState onRefresh={() => void handleRefresh()} refreshing={refreshing} />
+      )}
 
-      <div className="fin-rows">
-        {ROWS.map((r) => (
-          <div className="fin-row" key={r.label}>
-            <span className="fin-row-label">
-              <span className="fin-swatch" style={{ background: r.color }} />
-              {r.label}
+      {!loading && snapshot && (
+        <>
+          <div className="fin-meta">
+            <span className="fin-as-of">
+              As of {fmtDate(snapshot.as_of)}
+              {asOfDate && <span className="fin-fetched"> · fetched {fmtDate(asOfDate)}</span>}
             </span>
-            <span className="fin-val">{r.value}</span>
           </div>
-        ))}
-      </div>
+
+          {snapshot.categories.length > 0 && (
+            <CategoryBars categories={snapshot.categories} currency={currency} />
+          )}
+        </>
+      )}
     </div>
   );
 }
