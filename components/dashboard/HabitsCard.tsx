@@ -217,7 +217,7 @@ export function HabitsCard() {
               <div className="habit-row" key={habit.id}>
                 <div className="habit-name">
                   <span className="habit-icon" aria-hidden>{habit.icon}</span>
-                  {habit.name}
+                  <span className="habit-name-text">{habit.name}</span>
                 </div>
                 <div className="habit-cells">
                   {keys.map((key) => {

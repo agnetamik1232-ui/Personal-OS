@@ -2042,15 +2042,15 @@
 /* ── Habit tracker ───────────────────────────────────────────────────────── */
 .habit-days {
   display: grid;
-  grid-template-columns: 140px 1fr 36px;
-  gap: 14px;
+  grid-template-columns: minmax(0, 120px) 1fr 34px;
+  gap: 8px;
   margin-bottom: 10px;
   align-items: end;
 }
 .habit-days-grid {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  gap: 6px;
+  gap: 4px;
 }
 .habit-str-hdr {
   font-family: var(--font-mono), monospace;
@@ -2095,23 +2095,42 @@
 .habit-grid { display: grid; gap: 10px; }
 .habit-row  {
   display: grid;
-  grid-template-columns: 140px 1fr 36px;
+  grid-template-columns: minmax(0, 120px) 1fr 34px;
   align-items: center;
-  gap: 14px;
+  gap: 8px;
 }
-.habit-name { font-size: 13px; font-weight: 500; display: flex; align-items: center; gap: 10px; color: var(--ink-hex); }
+.habit-name {
+  font-size:     13px;
+  font-weight:   500;
+  display:       flex;
+  align-items:   center;
+  gap:           8px;
+  color:         var(--ink-hex);
+  min-width:     0;
+  overflow:      hidden;
+  white-space:   nowrap;
+  text-overflow: ellipsis;
+}
 .habit-icon {
-  width: 28px; height: 28px;
+  width:         28px;
+  height:        28px;
   border-radius: 10px;
-  background: rgba(28,26,23,0.06);
-  display: grid; place-items: center;
-  font-size: 14px;
-  flex-shrink: 0;
+  background:    rgba(28,26,23,0.06);
+  display:       grid;
+  place-items:   center;
+  font-size:     14px;
+  flex-shrink:   0;
+}
+.habit-name-text {
+  overflow:      hidden;
+  white-space:   nowrap;
+  text-overflow: ellipsis;
+  min-width:     0;
 }
 .habit-cells {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  gap: 6px;
+  gap: 4px;
 }
 .habit-cell {
   aspect-ratio: 1 / 1;
