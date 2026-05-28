@@ -45,14 +45,34 @@ const CACHE_TTL_MS = 5 * 60 * 1000;  // 5 minutes
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
-function icalTimeToISO(t: ICAL.Time): string {
-  return t.toJSDate().toISOString();
+function safeISO(t: ICAL.Time | null | undefined, fallback: string): string {
+  try {
+    return t ? t.toJSDate().toISOString() : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+/**
+ * Return a best-effort end time for an event.
+ * Handles: DTEND present | DURATION only | all-day (no end) | totally absent.
+ */
+function resolveEnd(event: ICAL.Event, start: ICAL.Time): ICAL.Time {
+  // ical.js computes endDate from DURATION if DTEND is absent
+  try {
+    const end = event.endDate;
+    if (end) return end;
+  } catch { /* fall through */ }
+
+  // All-day with no DTEND — end = start + 1 day
+  const clone = start.clone();
+  clone.addDuration(new ICAL.Duration({ days: 1 }));
+  return clone;
 }
 
 /** True when dtstart is a DATE value (all-day), not DATE-TIME */
 function isAllDay(event: ICAL.Event): boolean {
-  // ical.js stores all-day events with isDate = true on the startDate
-  return event.startDate.isDate;
+  try { return event.startDate.isDate; } catch { return false; }
 }
 
 /**
@@ -69,11 +89,16 @@ function expandEvent(
   const winStartMs = windowStart.getTime();
   const winEndMs   = windowEnd.getTime();
 
+  // Guard: skip events with no valid start
+  let eventStart: ICAL.Time;
+  try { eventStart = event.startDate; } catch { return results; }
+
   if (!event.isRecurring()) {
-    const endMs = event.endDate.toJSDate().getTime();
-    // Overlaps window?
-    if (event.startDate.toJSDate().getTime() < winEndMs && endMs > winStartMs) {
-      results.push(toCalendarEvent(event, event.startDate, event.endDate));
+    const end      = resolveEnd(event, eventStart);
+    const startMs  = eventStart.toJSDate().getTime();
+    const endMs    = end.toJSDate().getTime();
+    if (startMs < winEndMs && endMs > winStartMs) {
+      results.push(toCalendarEvent(event, eventStart, end));
     }
     return results;
   }
@@ -81,22 +106,25 @@ function expandEvent(
   // Recurring — use iterator
   const iter = event.iterator();
   let   occ: ICAL.Time | null;
-
-  // Safety cap: max 400 occurrences to avoid infinite loops on FREQ=MINUTELY etc.
-  let guard = 0;
+  let   guard = 0;   // safety cap against infinite MINUTELY rules
 
   while ((occ = iter.next()) !== null && guard++ < 400) {
-    const occMs = occ.toJSDate().getTime();
+    let occMs: number;
+    try { occMs = occ.toJSDate().getTime(); } catch { continue; }
 
-    // Past the window — done
     if (occMs >= winEndMs) break;
 
-    // Get full details (handles EXDATE / RDATE exceptions)
-    const details = event.getOccurrenceDetails(occ);
-    const endMs   = details.endDate.toJSDate().getTime();
+    let details: ReturnType<ICAL.Event["getOccurrenceDetails"]>;
+    try { details = event.getOccurrenceDetails(occ); } catch { continue; }
+
+    const start = details.startDate ?? occ;
+    const end   = details.endDate   ?? resolveEnd(event, start);
+
+    let endMs: number;
+    try { endMs = end.toJSDate().getTime(); } catch { continue; }
 
     if (endMs > winStartMs) {
-      results.push(toCalendarEvent(event, details.startDate, details.endDate));
+      results.push(toCalendarEvent(event, start, end));
     }
   }
 
@@ -108,15 +136,16 @@ function toCalendarEvent(
   start: ICAL.Time,
   end:   ICAL.Time,
 ): CalendarEvent {
+  const startISO = safeISO(start, new Date().toISOString());
   return {
-    uid:         event.uid,
-    title:       event.summary       ?? "(no title)",
-    start:       icalTimeToISO(start),
-    end:         icalTimeToISO(end),
+    uid:         event.uid          ?? crypto.randomUUID(),
+    title:       event.summary      ?? "(no title)",
+    start:       startISO,
+    end:         safeISO(end, startISO),
     allDay:      isAllDay(event),
-    location:    event.location      ?? "",
-    description: event.description   ?? "",
-    color:       event.color         ?? "",
+    location:    event.location     ?? "",
+    description: event.description  ?? "",
+    color:       event.color        ?? "",
   };
 }
 
