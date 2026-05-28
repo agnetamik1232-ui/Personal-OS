@@ -8,15 +8,15 @@ import { GoalsCard }       from "./GoalsCard";
 export function DashboardGrid() {
   return (
     <div className="dash-grid">
-      {/* ── Col 1: Finance / Habits ── */}
+      {/* ── Col 1: Finance ── */}
       <div className="dash-col">
         <FinanceCard />
-        <HabitsCard />
       </div>
 
-      {/* ── Col 2: Session / Goals ── */}
+      {/* ── Col 2: Session / Habits / Goals ── */}
       <div className="dash-col">
         <SessionCard />
+        <HabitsCard />
         <GoalsCard />
       </div>
 
