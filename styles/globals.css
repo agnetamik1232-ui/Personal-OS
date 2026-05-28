@@ -3250,3 +3250,124 @@
   font-variant-numeric: tabular-nums;
   color:                var(--ink-hex);
 }
+
+/* ── Session card — start form & new states ──────────────────────────────────── */
+
+.sess-start-form {
+  display:        flex;
+  flex-direction: column;
+  gap:            12px;
+  padding:        4px 0;
+}
+.sess-start-tag {
+  display:        flex;
+  align-items:    center;
+  gap:            6px;
+  font-size:      11px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color:          rgba(250,245,236,0.45);
+}
+.sess-start-input {
+  background:    transparent;
+  border:        none;
+  border-bottom: 1px solid rgba(250,245,236,0.15);
+  color:         rgba(250,245,236,0.95);
+  font-size:     22px;
+  font-weight:   600;
+  letter-spacing: -0.02em;
+  padding:       6px 0;
+  outline:       none;
+  width:         100%;
+}
+.sess-start-input::placeholder { color: rgba(250,245,236,0.25); }
+.sess-start-sub {
+  background:    transparent;
+  border:        none;
+  border-bottom: 1px solid rgba(250,245,236,0.08);
+  color:         rgba(250,245,236,0.5);
+  font-size:     14px;
+  padding:       4px 0;
+  outline:       none;
+  width:         100%;
+  font-style:    italic;
+}
+.sess-start-sub::placeholder { color: rgba(250,245,236,0.2); }
+.sess-start-row {
+  display:         flex;
+  justify-content: space-between;
+  align-items:     center;
+  gap:             12px;
+  flex-wrap:       wrap;
+}
+.sess-dur-group {
+  display:     flex;
+  align-items: center;
+  gap:         6px;
+}
+.sess-dur-btn {
+  padding:       4px 10px;
+  border-radius: 7px;
+  border:        1px solid rgba(250,245,236,0.15);
+  background:    transparent;
+  color:         rgba(250,245,236,0.5);
+  font-size:     12px;
+  cursor:        pointer;
+}
+.sess-dur-btn:hover        { border-color: rgba(250,245,236,0.35); color: rgba(250,245,236,0.9); }
+.sess-dur-btn-active       { background: rgba(250,245,236,0.12); color: rgba(250,245,236,0.95); border-color: rgba(250,245,236,0.3); }
+.sess-dur-custom {
+  width:         48px;
+  background:    transparent;
+  border:        1px solid rgba(250,245,236,0.12);
+  border-radius: 7px;
+  color:         rgba(250,245,236,0.6);
+  font-size:     12px;
+  padding:       4px 6px;
+  text-align:    center;
+  outline:       none;
+}
+.sess-start-btn {
+  display:       flex;
+  align-items:   center;
+  gap:           6px;
+  padding:       8px 20px;
+  border-radius: 10px;
+  background:    rgba(250,245,236,0.95);
+  color:         #1C1A17;
+  font-size:     13px;
+  font-weight:   600;
+  border:        none;
+  cursor:        pointer;
+}
+.sess-start-btn:disabled { opacity: 0.4; cursor: default; }
+.sess-start-btn:not(:disabled):hover { background: #fff; }
+
+/* paused badge */
+.sess-paused-badge {
+  font-size:     11px;
+  color:         rgba(250,245,236,0.4);
+  font-style:    italic;
+}
+
+/* active notes button highlight */
+.sess-btn-active { background: rgba(250,245,236,0.12) !important; }
+
+/* notes textarea */
+.sess-notes-area {
+  width:         100%;
+  margin-top:    8px;
+  background:    rgba(250,245,236,0.05);
+  border:        1px solid rgba(250,245,236,0.12);
+  border-radius: 10px;
+  color:         rgba(250,245,236,0.85);
+  font-size:     13px;
+  line-height:   1.6;
+  padding:       10px 12px;
+  outline:       none;
+  resize:        vertical;
+  min-height:    80px;
+  box-sizing:    border-box;
+}
+.sess-notes-area::placeholder { color: rgba(250,245,236,0.25); }
+.sess-notes-area:focus        { border-color: rgba(250,245,236,0.25); }
