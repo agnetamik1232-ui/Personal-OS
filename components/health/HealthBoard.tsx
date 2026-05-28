@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import type { DayLog, NutritionResponse } from "@/app/api/nutrition/route";
 import type { Meal } from "@/components/dashboard/NutritionCard";
+import { WeightSection } from "./WeightSection";
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
@@ -135,6 +136,11 @@ export function HealthBoard() {
 
   return (
     <div className="hlth-board">
+      {/* Weight section — always shown, uses its own days prop */}
+      <WeightSection days={Math.max(days, 30)} />
+
+      <div className="hlth-section-divider" />
+
       {/* Page header */}
       <div className="hlth-header">
         <div>
