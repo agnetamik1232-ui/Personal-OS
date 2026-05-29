@@ -17,7 +17,7 @@ import {
   SHIFT_META,
 } from "@/lib/work/types";
 import { getLithuanianHolidays, HOLIDAY_NAMES } from "@/lib/work/holidays";
-import { calcHoursWorked, calcNightSplit } from "@/lib/work/salary";
+import { calcHoursWorked, calcNightSplit, calcGrossPaySplit } from "@/lib/work/salary";
 
 const WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"] as const;
 const MONTH_NAMES = [
@@ -192,7 +192,12 @@ export function WorkCalendar(): React.JSX.Element {
       const e = agg.get(s.shift_type) ?? { days: 0, hours: 0, gross: 0 };
       e.days  += 1;
       e.hours += s.hours_worked;
-      e.gross += s.gross_pay;
+      // Old shifts saved with wrong night_start have night_hours=0 — recalculate gross live
+      const isNightType = s.shift_type === "night" || s.shift_type === "overtime_night";
+      const needsRecalc = isNightType && settings && (s.night_hours ?? 0) === 0 && s.hours_worked > 0;
+      e.gross += needsRecalc && settings
+        ? calcGrossPaySplit(s.start_time, s.end_time, s.break_min, s.shift_type, settings).gross_pay
+        : s.gross_pay;
       agg.set(s.shift_type, e);
     }
     const rows = SHIFT_TYPES
