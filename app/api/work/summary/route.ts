@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/server";
-import { calcNet, calcTax, calcNightSplit } from "@/lib/work/salary";
+import { calcNet, calcTax, calcGrossPaySplit } from "@/lib/work/salary";
 import type { WorkShift, WorkSettings, WorkSummary } from "@/lib/work/types";
 
 function uid(): string {
@@ -40,6 +40,14 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     const settings: WorkSettings = settData
       ? (settData as unknown as WorkSettings)
       : { id: "", updated_at: new Date().toISOString(), ...DEFAULT_SETTINGS };
+    // Self-heal: correct bad night_start that was seeded as "18:00"
+    if (settings.night_start === "18:00") {
+      settings.night_start = "22:00";
+      void supabase
+        .from("work_settings")
+        .update({ night_start: "22:00", updated_at: new Date().toISOString() } as never)
+        .eq("user_id", uid());
+    }
 
     const shifts = (shiftData ?? []) as unknown as WorkShift[];
 
@@ -48,19 +56,24 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     let days_worked = 0, gross_salary = 0;
 
     for (const s of shifts) {
-      total_hours += s.hours_worked;
-      gross_salary += s.gross_pay;
-      // Use stored split columns; fall back to live recalc for old rows (regular_hours=0, night_hours=0)
+      const isNightType = s.shift_type === "night" || s.shift_type === "overtime_night";
+
+      // For old shifts with no split stored (regular_hours=0 on a night shift), recalculate everything live
       let sNight   = s.night_hours   ?? 0;
       let sRegular = s.regular_hours ?? 0;
-      const isNightType = s.shift_type === "night" || s.shift_type === "overtime_night";
+      let sPay     = s.gross_pay;
+
       if (isNightType && sNight === 0 && s.hours_worked > 0) {
-        const split = calcNightSplit(s.start_time, s.end_time, s.break_min, settings.night_start, settings.night_end);
-        sNight   = split.nightHours;
-        sRegular = split.regularHours;
+        const recalc = calcGrossPaySplit(s.start_time, s.end_time, s.break_min, s.shift_type, settings);
+        sNight   = recalc.night_hours;
+        sRegular = recalc.regular_hours;
+        sPay     = recalc.gross_pay;
       } else if (!isNightType && sRegular === 0) {
         sRegular = s.hours_worked;
       }
+
+      total_hours += s.hours_worked;
+      gross_salary += sPay;
       switch (s.shift_type) {
         case "day":            day_hours += sRegular; break;
         case "night":          night_hours += sNight; day_hours += sRegular; break;
