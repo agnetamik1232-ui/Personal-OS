@@ -29,18 +29,30 @@ function monthEnd(offset = 0): string {
   return d.toISOString().split("T")[0]!;
 }
 
-import type { FinSummary, AccountBalance } from "@/lib/finance/types";
+import type { FinSummary, AccountBalance, FinInsight, UpcomingBill } from "@/lib/finance/types";
+
+function fmt(n: number): string {
+  return "€" + n.toLocaleString("en-IE", { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+}
 
 export async function GET(): Promise<NextResponse> {
   try {
     const supabase = await createAdminClient();
     const userId   = uid();
 
-    // Load accounts + all-time transactions in parallel
-    const [accsRes, txsRes, invRes] = await Promise.all([
+    const in30 = new Date();
+    in30.setDate(in30.getDate() + 30);
+    const in30Str = in30.toISOString().split("T")[0]!;
+    const todayStr = new Date().toISOString().split("T")[0]!;
+
+    // Load accounts + all-time transactions + inventory + upcoming recurring in parallel
+    const [accsRes, txsRes, invRes, recRes] = await Promise.all([
       supabase.from("fin_accounts").select("*").eq("user_id", userId),
       supabase.from("fin_transactions").select("*").eq("user_id", userId),
       supabase.from("fin_inventory").select("*").eq("user_id", userId),
+      supabase.from("fin_recurring").select("*").eq("user_id", userId)
+        .eq("is_active", true).gte("next_date", todayStr).lte("next_date", in30Str)
+        .order("next_date", { ascending: true }),
     ]);
 
     if (accsRes.error) return NextResponse.json({ error: accsRes.error.message }, { status: 500 });
@@ -144,19 +156,76 @@ export async function GET(): Promise<NextResponse> {
       .filter((i) => i.status === "sold" && i.sold_at && i.sold_at >= thisStart && i.sold_at <= thisEnd)
       .reduce((s, i) => s + ((i.actual_sale_price ?? i.expected_sale_price) - i.purchase_price), 0);
 
+    const monthlySavings = monthlyIncome - monthlyExpenses;
+    const prevSavings    = prevIncome - prevExpenses;
+    const savingsRate    = monthlyIncome > 0 ? monthlySavings / monthlyIncome : 0;
+
+    const daysElapsed   = new Date().getDate();
+    const dailyAvgSpend = monthlyExpenses / Math.max(daysElapsed, 1);
+
+    // Upcoming bills (recurring, next 30 days)
+    type RawRec = {
+      id: string; name: string; amount: number; next_date: string; category: string;
+    };
+    const recRows = (recRes.data ?? []) as RawRec[];
+    const upcomingBills: UpcomingBill[] = recRows.map((r) => {
+      const d = new Date(r.next_date); d.setHours(0, 0, 0, 0);
+      const t = new Date(); t.setHours(0, 0, 0, 0);
+      return {
+        id:         r.id,
+        name:       r.name,
+        amount:     r.amount,
+        due_date:   r.next_date,
+        category:   r.category,
+        days_until: Math.round((d.getTime() - t.getTime()) / 86400000),
+      };
+    });
+    const upcomingSum     = upcomingBills.reduce((s, b) => s + b.amount, 0);
+    const availableToSpend = cashAvail - upcomingSum;
+
+    // Health score
+    const savingsPoints   = Math.min(savingsRate * 200, 40);
+    const emergencyMonths = monthlyExpenses > 0 ? cashAvail / monthlyExpenses : 0;
+    const emergencyPoints = Math.min(emergencyMonths * 10, 30);
+    const liabilityBalance = accountsList.filter((a) => a.is_liability).reduce((s, a) => s + Math.abs(a.balance), 0);
+    const debtPoints      = liabilityBalance === 0 ? 10 : Math.max(0, 10 - (liabilityBalance / Math.max(netWorth, 1)) * 10);
+    const budgetPoints    = 20;
+    const healthScore = Math.round(Math.min(100, Math.max(0, savingsPoints + emergencyPoints + debtPoints + budgetPoints)));
+
+    // Insights
+    const insights: FinInsight[] = [];
+    if (monthlySavings > 0) insights.push({ type: "positive", text: `You saved ${fmt(monthlySavings)} this month` });
+    if (savingsRate >= 0.2) insights.push({ type: "positive", text: `Excellent savings rate of ${Math.round(savingsRate * 100)}%` });
+    else if (savingsRate > 0) insights.push({ type: "neutral", text: `Savings rate: ${Math.round(savingsRate * 100)}%` });
+    if (prevExpenses > 0) {
+      const diff = (monthlyExpenses - prevExpenses) / prevExpenses;
+      if (diff > 0.05) insights.push({ type: "warning", text: `Spending up ${Math.round(diff * 100)}% vs last month` });
+      else if (diff < -0.05) insights.push({ type: "positive", text: `Spending down ${Math.round(Math.abs(diff) * 100)}% vs last month` });
+    }
+    if (emergencyMonths >= 3) insights.push({ type: "positive", text: `${emergencyMonths.toFixed(1)} months of expenses in cash` });
+    else if (emergencyMonths < 1 && cashAvail < monthlyExpenses) insights.push({ type: "warning", text: "Less than 1 month of emergency cash" });
+    if (netWorth > 0) insights.push({ type: "neutral", text: `Net worth: ${fmt(netWorth)}` });
+
     const summary: FinSummary = {
-      net_worth:           netWorth,
-      cash_available:      cashAvail,
-      monthly_income:      monthlyIncome,
-      monthly_expenses:    monthlyExpenses,
-      monthly_savings:     monthlyIncome - monthlyExpenses,
-      prev_month_income:   prevIncome,
-      prev_month_expenses: prevExpenses,
-      inventory_value:     inventoryValue,
-      potential_profit:    potentialProfit,
+      net_worth:             netWorth,
+      cash_available:        cashAvail,
+      monthly_income:        monthlyIncome,
+      monthly_expenses:      monthlyExpenses,
+      monthly_savings:       monthlySavings,
+      monthly_savings_rate:  savingsRate,
+      prev_month_income:     prevIncome,
+      prev_month_expenses:   prevExpenses,
+      prev_month_savings:    prevSavings,
+      inventory_value:       inventoryValue,
+      potential_profit:      potentialProfit,
       realized_profit_month: realizedMonth,
-      accounts:            accountsList,
-      currency:            accounts[0]?.currency ?? "EUR",
+      available_to_spend:    availableToSpend,
+      daily_avg_spend:       dailyAvgSpend,
+      health_score:          healthScore,
+      insights,
+      upcoming_bills:        upcomingBills,
+      accounts:              accountsList,
+      currency:              accounts[0]?.currency ?? "EUR",
     };
 
     return NextResponse.json({ summary });

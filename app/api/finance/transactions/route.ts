@@ -23,6 +23,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     const account = sp.get("account");
     const type    = sp.get("type");
     const cat     = sp.get("category");
+    const merchant = sp.get("merchant");
     const search  = sp.get("search");
     const limit   = Math.min(parseInt(sp.get("limit") ?? "500", 10), 1000);
 
@@ -42,8 +43,9 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
 
     if (account) q = q.eq("account_id", account);
     if (type)    q = q.eq("type", type);
-    if (cat)     q = q.eq("category", cat);
-    if (search)  q = q.ilike("note", `%${search}%`);
+    if (cat)      q = q.eq("category", cat);
+    if (merchant) q = q.ilike("merchant", `%${merchant}%`);
+    if (search)   q = q.ilike("note", `%${search}%`);
 
     const { data, error } = await q;
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
@@ -81,6 +83,9 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
         date:          body.date ?? new Date().toISOString().split("T")[0],
         type:          body.type,
         category:      body.category ?? "Other",
+        subcategory:   body.subcategory ?? null,
+        merchant:      body.merchant ?? null,
+        tags:          body.tags ?? [],
         account_id:    body.account_id,
         to_account_id: body.to_account_id ?? null,
         amount:        body.amount,
@@ -104,6 +109,9 @@ export async function PATCH(req: NextRequest): Promise<NextResponse> {
     if (body.date          !== undefined) patch["date"]          = body.date;
     if (body.type          !== undefined) patch["type"]          = body.type;
     if (body.category      !== undefined) patch["category"]      = body.category;
+    if (body.subcategory   !== undefined) patch["subcategory"]   = body.subcategory;
+    if (body.merchant      !== undefined) patch["merchant"]      = body.merchant;
+    if (body.tags          !== undefined) patch["tags"]          = body.tags;
     if (body.account_id    !== undefined) patch["account_id"]    = body.account_id;
     if (body.to_account_id !== undefined) patch["to_account_id"] = body.to_account_id;
     if (body.amount        !== undefined) patch["amount"]        = body.amount;
