@@ -4476,3 +4476,252 @@
   .fin3-modal { padding: 20px; }
   .fin3-fab { bottom: 20px; right: 20px; }
 }
+
+/* ═══════════════════════════════════════════════════════════════════════════ */
+/* Dashboard v2 — new layout + KPI row + Insights + Weekly Snapshot          */
+/* ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Layout shell ──────────────────────────────────────────────────────────── */
+.dash-v2 {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+.dash-full {
+  width: 100%;
+}
+.dash-two-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  align-items: start;
+}
+@media (max-width: 900px) {
+  .dash-two-col {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ── KPI Row ───────────────────────────────────────────────────────────────── */
+.kpi-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+@media (max-width: 1100px) {
+  .kpi-row { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 600px) {
+  .kpi-row { grid-template-columns: 1fr 1fr; }
+}
+
+.kpi-card {
+  background: var(--cream);
+  border: 1px solid var(--line);
+  border-radius: var(--r-card);
+  padding: 20px 22px;
+  box-shadow: var(--shadow-card);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  transition: box-shadow 0.15s, transform 0.15s;
+  text-decoration: none;
+  color: inherit;
+}
+.kpi-card-link:hover {
+  box-shadow: 0 4px 20px rgba(0,0,0,0.10);
+  transform: translateY(-1px);
+}
+.kpi-eyebrow {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 2px;
+}
+.kpi-value {
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--ink);
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+.kpi-value-green { color: #16a34a; }
+.kpi-skeleton {
+  height: 32px;
+  border-radius: 6px;
+  background: var(--line);
+  animation: kpi-pulse 1.4s ease-in-out infinite;
+  margin: 4px 0;
+}
+@keyframes kpi-pulse {
+  0%, 100% { opacity: 0.5; }
+  50%       { opacity: 1;   }
+}
+.kpi-trend {
+  font-size: 12px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.kpi-trend-up     { color: #16a34a; }
+.kpi-trend-down   { color: #dc2626; }
+.kpi-trend-neutral { color: var(--muted); }
+
+.kpi-focus-pills {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: 2px;
+}
+.kpi-pill {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 9px;
+  border-radius: 100px;
+}
+.kpi-pill-neutral { background: rgba(0,0,0,0.07); color: var(--ink); }
+.kpi-pill-red     { background: #fef2f2; color: #dc2626; }
+
+/* Life score card */
+.kpi-card-score {
+  background: var(--cream);
+}
+.kpi-score-wrap {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: 4px;
+}
+.kpi-score-ring {
+  position: relative;
+  flex-shrink: 0;
+}
+.kpi-score-inner {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--ink);
+}
+.kpi-score-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+}
+.kpi-score-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: var(--muted);
+}
+.kpi-score-row strong {
+  font-weight: 700;
+}
+
+/* ── Insights Card ─────────────────────────────────────────────────────────── */
+.ins-card {}
+
+.ins-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 8px;
+}
+.ins-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  font-size: 13px;
+  line-height: 1.45;
+  border-left: 3px solid transparent;
+}
+.ins-row-positive {
+  background: rgba(22, 163, 74, 0.06);
+  border-left-color: #16a34a;
+}
+.ins-row-warning {
+  background: rgba(217, 119, 6, 0.06);
+  border-left-color: #d97706;
+}
+.ins-row-negative {
+  background: rgba(220, 38, 38, 0.06);
+  border-left-color: #dc2626;
+}
+.ins-row-neutral {
+  background: rgba(0,0,0,0.04);
+  border-left-color: rgba(0,0,0,0.15);
+}
+.ins-icon {
+  font-size: 15px;
+  flex-shrink: 0;
+  line-height: 1.45;
+}
+.ins-text {
+  color: var(--ink);
+  font-weight: 500;
+}
+.ins-skeleton {
+  height: 44px;
+  border-radius: 12px;
+  background: var(--line);
+  animation: kpi-pulse 1.4s ease-in-out infinite;
+}
+.ins-empty {
+  font-size: 13px;
+  color: var(--muted);
+  padding: 16px 0;
+  text-align: center;
+}
+
+/* ── Weekly Snapshot Card ──────────────────────────────────────────────────── */
+.wkly-card {}
+
+.wkly-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  margin-top: 8px;
+}
+.wkly-tile {
+  background: rgba(0,0,0,0.03);
+  border-radius: 12px;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.wkly-tile-label {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--muted);
+}
+.wkly-tile-value {
+  font-size: 24px;
+  font-weight: 800;
+  color: var(--ink);
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+.wkly-pos { color: #16a34a; }
+.wkly-neg { color: #dc2626; }
+.wkly-tile-sub {
+  font-size: 11px;
+  color: var(--muted);
+}
+.wkly-skeleton {
+  height: 72px;
+  border-radius: 12px;
+  background: var(--line);
+  animation: kpi-pulse 1.4s ease-in-out infinite;
+}
