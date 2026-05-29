@@ -4,6 +4,7 @@ export type ShiftType =
   | "overtime_day"
   | "overtime_night"
   | "day_off"
+  | "day_off_night"
   | "holiday"
   | "vacation"
   | "sick"
@@ -37,6 +38,7 @@ export interface WorkSettings {
   mult_overtime_day:    number;
   mult_overtime_night:  number;
   mult_day_off:         number;
+  mult_day_off_night:   number;   // night portion of a day-off night shift (default 2.5)
   mult_holiday:         number;
   mult_vacation:        number;
   mult_sick:            number;
@@ -73,6 +75,7 @@ export const SHIFT_META: Record<ShiftType, { label: string; color: string; short
   overtime_day:   { label: "Overtime Day",    color: "#F97316", short: "OVD"  },
   overtime_night: { label: "Overtime Night",  color: "#DC2626", short: "OVN"  },
   day_off:        { label: "Day Off Worked",  color: "#10B981", short: "OFF"  },
+  day_off_night:  { label: "Day Off Night",   color: "#059669", short: "OFN"  },
   holiday:        { label: "Public Holiday",  color: "#EF4444", short: "HOL"  },
   vacation:       { label: "Vacation",        color: "#9CA3AF", short: "VAC"  },
   sick:           { label: "Sick Leave",      color: "#F59E0B", short: "SICK" },

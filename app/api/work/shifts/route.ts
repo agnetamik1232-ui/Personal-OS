@@ -13,7 +13,7 @@ function uid(): string {
 const DEFAULT_SETTINGS: Omit<WorkSettings, "id" | "updated_at"> = {
   hourly_rate: 7.0, currency: "EUR", tax_rate: 0.36,
   mult_day: 1.0, mult_night: 1.5, mult_overtime_day: 1.5,
-  mult_overtime_night: 2.0, mult_day_off: 2.0, mult_holiday: 2.0,
+  mult_overtime_night: 2.0, mult_day_off: 2.0, mult_day_off_night: 2.5, mult_holiday: 2.0,
   mult_vacation: 1.0, mult_sick: 0.0, mult_unpaid: 0.0, mult_custom: 1.0,
   // Night PAY window per Lithuanian law: 22:00–06:00
   night_start: "22:00", night_end: "06:00",

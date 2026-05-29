@@ -60,6 +60,7 @@ export function getMultiplier(shiftType: ShiftType, settings: WorkSettings): num
     overtime_day:   settings.mult_overtime_day,
     overtime_night: settings.mult_overtime_night,
     day_off:        settings.mult_day_off,
+    day_off_night:  settings.mult_day_off_night,
     holiday:        settings.mult_holiday,
     vacation:       settings.mult_vacation,
     sick:           settings.mult_sick,
@@ -82,12 +83,14 @@ export function calcGrossPaySplit(
 ): { hours_worked: number; gross_pay: number; regular_hours: number; night_hours: number } {
   const rate = settings.hourly_rate;
 
-  if (shiftType === "night" || shiftType === "overtime_night") {
+  if (shiftType === "night" || shiftType === "overtime_night" || shiftType === "day_off_night") {
     const { regularHours, nightHours, totalHours } = calcNightSplit(
       startTime, endTime, breakMin, settings.night_start, settings.night_end,
     );
-    const dayMult   = shiftType === "night" ? settings.mult_day : settings.mult_overtime_day;
-    const nightMult = shiftType === "night" ? settings.mult_night : settings.mult_overtime_night;
+    let dayMult: number, nightMult: number;
+    if (shiftType === "night")          { dayMult = settings.mult_day;          nightMult = settings.mult_night; }
+    else if (shiftType === "overtime_night") { dayMult = settings.mult_overtime_day; nightMult = settings.mult_overtime_night; }
+    else                                { dayMult = settings.mult_day_off;      nightMult = settings.mult_day_off_night; }
     const gross = Math.round((regularHours * rate * dayMult + nightHours * rate * nightMult) * 100) / 100;
     return { hours_worked: totalHours, gross_pay: gross, regular_hours: regularHours, night_hours: nightHours };
   }

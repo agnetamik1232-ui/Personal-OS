@@ -11,7 +11,7 @@ function uid(): string {
 const DEFAULT_SETTINGS = {
   hourly_rate: 7.0, currency: "EUR", tax_rate: 0.36,
   mult_day: 1.0, mult_night: 1.5, mult_overtime_day: 1.5,
-  mult_overtime_night: 2.0, mult_day_off: 2.0, mult_holiday: 2.0,
+  mult_overtime_night: 2.0, mult_day_off: 2.0, mult_day_off_night: 2.5, mult_holiday: 2.0,
   mult_vacation: 1.0, mult_sick: 0.0, mult_unpaid: 0.0, mult_custom: 1.0,
   night_start: "22:00", night_end: "06:00",
 };
@@ -56,6 +56,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     if (body.mult_overtime_day    !== undefined) patch["mult_overtime_day"]    = body.mult_overtime_day;
     if (body.mult_overtime_night  !== undefined) patch["mult_overtime_night"]  = body.mult_overtime_night;
     if (body.mult_day_off         !== undefined) patch["mult_day_off"]         = body.mult_day_off;
+    if (body.mult_day_off_night   !== undefined) patch["mult_day_off_night"]   = body.mult_day_off_night;
     if (body.mult_holiday         !== undefined) patch["mult_holiday"]         = body.mult_holiday;
     if (body.mult_vacation        !== undefined) patch["mult_vacation"]        = body.mult_vacation;
     if (body.mult_sick            !== undefined) patch["mult_sick"]            = body.mult_sick;

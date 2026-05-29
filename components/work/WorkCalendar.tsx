@@ -193,7 +193,7 @@ export function WorkCalendar(): React.JSX.Element {
       e.days  += 1;
       e.hours += s.hours_worked;
       // Old shifts saved with wrong night_start have night_hours=0 — recalculate gross live
-      const isNightType = s.shift_type === "night" || s.shift_type === "overtime_night";
+      const isNightType = s.shift_type === "night" || s.shift_type === "overtime_night" || s.shift_type === "day_off_night";
       const needsRecalc = isNightType && settings && (s.night_hours ?? 0) === 0 && s.hours_worked > 0;
       e.gross += needsRecalc && settings
         ? calcGrossPaySplit(s.start_time, s.end_time, s.break_min, s.shift_type, settings).gross_pay
@@ -395,8 +395,8 @@ function multForType(t: ShiftType, s: WorkSettings | null): number {
   if (!s) return 1;
   const map: Record<ShiftType, number> = {
     day: s.mult_day, night: s.mult_night, overtime_day: s.mult_overtime_day,
-    overtime_night: s.mult_overtime_night, day_off: s.mult_day_off, holiday: s.mult_holiday,
-    vacation: s.mult_vacation, sick: s.mult_sick, unpaid: s.mult_unpaid, custom: s.mult_custom,
+    overtime_night: s.mult_overtime_night, day_off: s.mult_day_off, day_off_night: s.mult_day_off_night,
+    holiday: s.mult_holiday, vacation: s.mult_vacation, sick: s.mult_sick, unpaid: s.mult_unpaid, custom: s.mult_custom,
   };
   return map[t];
 }
@@ -433,7 +433,7 @@ function ShiftModal({
 }): React.JSX.Element {
   // Default times per shift type (your schedule: day 06:00–18:00, night 18:00–06:00)
   function defaultTimes(type: ShiftType): { start: string; end: string } {
-    if (type === "night" || type === "overtime_night") return { start: "18:00", end: "06:00" };
+    if (type === "night" || type === "overtime_night" || type === "day_off_night") return { start: "18:00", end: "06:00" };
     return { start: "06:00", end: "18:00" };
   }
 
@@ -457,7 +457,7 @@ function ShiftModal({
   }
 
   // Night shifts split: 18:00–22:00 at regular rate, 22:00–06:00 at night rate
-  const isNightType = shiftType === "night" || shiftType === "overtime_night";
+  const isNightType = shiftType === "night" || shiftType === "overtime_night" || shiftType === "day_off_night";
   const nightStart  = settings?.night_start ?? "22:00";
   const nightEnd    = settings?.night_end   ?? "06:00";
 
@@ -471,8 +471,12 @@ function ShiftModal({
     if (!isNightType) {
       return Math.round(hours * rate * multForType(shiftType, settings) * 100) / 100;
     }
-    const dayMult   = shiftType === "night" ? (settings?.mult_day ?? 1) : (settings?.mult_overtime_day ?? 1.5);
-    const nightMult = shiftType === "night" ? (settings?.mult_night ?? 1.5) : (settings?.mult_overtime_night ?? 2);
+    const dayMult   = shiftType === "night" ? (settings?.mult_day ?? 1)
+                    : shiftType === "day_off_night" ? (settings?.mult_day_off ?? 2)
+                    : (settings?.mult_overtime_day ?? 1.5);
+    const nightMult = shiftType === "night" ? (settings?.mult_night ?? 1.5)
+                    : shiftType === "day_off_night" ? (settings?.mult_day_off_night ?? 2.5)
+                    : (settings?.mult_overtime_night ?? 2);
     return Math.round((regularHours * rate * dayMult + nightHours * rate * nightMult) * 100) / 100;
   }, [hours, rate, shiftType, settings, isNightType, regularHours, nightHours]);
 
@@ -596,6 +600,7 @@ function SettingsModal({
       t === "overtime_day" ? "mult_overtime_day" :
       t === "overtime_night" ? "mult_overtime_night" :
       t === "day_off" ? "mult_day_off" :
+      t === "day_off_night" ? "mult_day_off_night" :
       t === "holiday" ? "mult_holiday" :
       t === "vacation" ? "mult_vacation" :
       t === "sick" ? "mult_sick" :

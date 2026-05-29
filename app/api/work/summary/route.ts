@@ -12,7 +12,7 @@ function uid(): string {
 const DEFAULT_SETTINGS = {
   hourly_rate: 7.0, currency: "EUR", tax_rate: 0.36,
   mult_day: 1.0, mult_night: 1.5, mult_overtime_day: 1.5,
-  mult_overtime_night: 2.0, mult_day_off: 2.0, mult_holiday: 2.0,
+  mult_overtime_night: 2.0, mult_day_off: 2.0, mult_day_off_night: 2.5, mult_holiday: 2.0,
   mult_vacation: 1.0, mult_sick: 0.0, mult_unpaid: 0.0, mult_custom: 1.0,
   night_start: "22:00", night_end: "06:00",
 };
@@ -56,7 +56,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     let days_worked = 0, gross_salary = 0;
 
     for (const s of shifts) {
-      const isNightType = s.shift_type === "night" || s.shift_type === "overtime_night";
+      const isNightType = s.shift_type === "night" || s.shift_type === "overtime_night" || s.shift_type === "day_off_night";
 
       // For old shifts with no split stored (regular_hours=0 on a night shift), recalculate everything live
       let sNight   = s.night_hours   ?? 0;
@@ -81,6 +81,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
         case "overtime_night": overtime_hours += s.hours_worked; night_hours += sNight; day_hours += sRegular; break;
         case "holiday":        holiday_hours += s.hours_worked; break;
         case "day_off":        day_off_hours += s.hours_worked; break;
+        case "day_off_night":  day_off_hours += s.hours_worked; night_hours += sNight; break;
         case "vacation":       vacation_days += 1; break;
         case "sick":           sick_days += 1; break;
         case "unpaid":         break;
