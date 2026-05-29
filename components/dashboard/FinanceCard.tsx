@@ -4,6 +4,40 @@ import { useState, useEffect }      from "react";
 import Link                          from "next/link";
 import { IconCoin }                  from "@/components/ui/Icon";
 import type { FinanceSnapshot, FinanceCategory } from "@/app/api/finance/route";
+import type { NwPoint }              from "@/app/api/finance/history/route";
+
+// ── Sparkline ─────────────────────────────────────────────────────────────────
+
+function NwSparkline({ points }: { points: NwPoint[] }) {
+  if (points.length < 2) return null;
+  const vals = points.map((p) => p.net_worth);
+  const min  = Math.min(...vals);
+  const max  = Math.max(...vals);
+  const range = max - min || 1;
+  const W = 200, H = 40;
+  const ptStr = vals.map((v, i) => {
+    const x = (i / (vals.length - 1)) * W;
+    const y = H - ((v - min) / range) * (H - 4) - 2;
+    return `${x.toFixed(1)},${y.toFixed(1)}`;
+  }).join(" ");
+  const last  = points[points.length - 1]!;
+  const first = points[0]!;
+  const up    = last.net_worth >= first.net_worth;
+  const color = up ? "#2E6B45" : "#B85C5C";
+  return (
+    <div className="fin-sparkline-wrap">
+      <svg viewBox={`0 0 ${W} ${H}`} width="100%" height={H} preserveAspectRatio="none">
+        <polyline points={ptStr} fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        {/* End dot */}
+        {(() => {
+          const lx = W;
+          const ly = H - ((last.net_worth - min) / range) * (H - 4) - 2;
+          return <circle cx={lx} cy={ly} r="3" fill={color} />;
+        })()}
+      </svg>
+    </div>
+  );
+}
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -37,13 +71,16 @@ const GROUP_ORDER: FinanceCategory["group"][] = ["asset", "income", "liability",
 export function FinanceCard() {
   const [snapshot, setSnapshot] = useState<FinanceSnapshot | null>(null);
   const [loading,  setLoading]  = useState(true);
+  const [history,  setHistory]  = useState<NwPoint[]>([]);
 
   useEffect(() => {
-    fetch("/api/finance")
-      .then((r) => r.json() as Promise<{ snapshot: FinanceSnapshot | null }>)
-      .then(({ snapshot }) => setSnapshot(snapshot))
-      .catch(() => { /* silent */ })
-      .finally(() => setLoading(false));
+    void Promise.all([
+      fetch("/api/finance").then((r) => r.json() as Promise<{ snapshot: FinanceSnapshot | null }>),
+      fetch("/api/finance/history?days=90").then((r) => r.json() as Promise<{ points: NwPoint[] }>),
+    ]).then(([fin, hist]) => {
+      setSnapshot(fin.snapshot);
+      setHistory(hist.points ?? []);
+    }).catch(() => { /* silent */ }).finally(() => setLoading(false));
   }, []);
 
   const currency = snapshot?.currency ?? "EUR";
@@ -81,6 +118,7 @@ export function FinanceCard() {
             ? <>
                 <div className="fin-nw-val">{fmt(snapshot.net_worth, currency)}</div>
                 <div className="fin-nw-sub">Net worth · as of {fmtDate(snapshot.as_of)}</div>
+                {history.length >= 2 && <NwSparkline points={history} />}
               </>
             : <div className="fin-nw-empty">No data yet</div>
         }

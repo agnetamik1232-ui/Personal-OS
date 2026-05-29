@@ -7,11 +7,14 @@ import { IconSearch }            from "@/components/ui/Icon";
 import { OPERATOR }              from "@/lib/config/operator";
 
 const TABS = [
-  { label: "Home",    href: "/dashboard" },
-  { label: "CRM",     href: "/crm"       },
-  { label: "Finance", href: "/finance"   },
-  { label: "Journal", href: "/habits"    },
-  { label: "Health",  href: "/health"    },
+  { label: "Home",     href: "/dashboard" },
+  { label: "Tasks",    href: "/tasks"     },
+  { label: "Habits",   href: "/habits"    },
+  { label: "Health",   href: "/health"    },
+  { label: "Journal",  href: "/journal"   },
+  { label: "Finance",  href: "/finance"   },
+  { label: "CRM",      href: "/crm"       },
+  { label: "Review",   href: "/analytics" },
 ] as const;
 
 export function TopRail() {

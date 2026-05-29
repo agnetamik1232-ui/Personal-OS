@@ -1,7 +1,7 @@
 import Anthropic from "@anthropic-ai/sdk";
 import OpenAI from "openai";
 
-export type CaptureKind = "task" | "note" | "habit_log" | "finance" | "health" | "decision";
+export type CaptureKind = "task" | "note" | "habit_log" | "finance" | "health" | "decision" | "journal";
 export type Urgency     = "today" | "this_week" | "this_month" | "someday";
 
 export interface Classification {
@@ -18,7 +18,7 @@ const SYSTEM_PROMPT = `You are a personal capture classifier for a single user's
 
 Classify the user's captured text and return ONLY a JSON object with this exact shape:
 {
-  "kind":      "task" | "note" | "habit_log" | "finance" | "health" | "decision",
+  "kind":      "task" | "note" | "habit_log" | "finance" | "health" | "decision" | "journal",
   "urgency":   "today" | "this_week" | "this_month" | "someday",
   "tags":      ["string", ...],
   "summary":   "Action-first summary under 80 chars",
@@ -31,6 +31,7 @@ Rules:
 - kind=finance:    spending, income, invoices, budget notes
 - kind=health:     symptoms, doctor visit, weight, medication
 - kind=decision:   a choice made or to be made
+- kind=journal:    reflections, thoughts about the day, feelings, diary entries, "today I...", personal narrative
 - kind=note:       everything else — ideas, observations, references
 - urgency=today:   "now", "today", "urgent", "asap", "call back"
 - urgency=this_week: "this week", "by friday", "soon", "few days"
@@ -134,7 +135,7 @@ function parseJSON(raw: string): Classification {
   const cleaned = raw.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/i, "").trim();
   const obj = JSON.parse(cleaned) as Record<string, unknown>;
 
-  const KINDS    = new Set<string>(["task","note","habit_log","finance","health","decision"]);
+  const KINDS    = new Set<string>(["task","note","habit_log","finance","health","decision","journal"]);
   const URGENCIES = new Set<string>(["today","this_week","this_month","someday"]);
 
   const kind    = KINDS.has(String(obj["kind"] ?? ""))    ? (obj["kind"]    as CaptureKind) : "note";

@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useState, useEffect } from "react";
 import {
   LayoutDashboard,
   CheckSquare,
@@ -13,6 +14,9 @@ import {
   Settings,
   Layers,
   ChevronRight,
+  BookOpen,
+  Users,
+  Users2,
 } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
 
@@ -22,46 +26,64 @@ interface NavSection {
 }
 
 interface NavItem {
-  label: string;
-  href: string;
-  icon: React.ElementType;
-  badge?: string;
+  label:  string;
+  href:   string;
+  icon:   React.ElementType;
+  badge?: string | null;
 }
 
-const navigation: NavSection[] = [
-  {
-    label: "Core",
-    items: [
-      { label: "Dashboard",  href: "/dashboard",  icon: LayoutDashboard },
-      { label: "Tasks",      href: "/tasks",       icon: CheckSquare,     badge: "12" },
-      { label: "Analytics",  href: "/analytics",   icon: BarChart2 },
-    ],
-  },
-  {
-    label: "Wellbeing",
-    items: [
-      { label: "Habits",     href: "/habits",      icon: Activity },
-      { label: "Health",     href: "/health",      icon: Layers },
-    ],
-  },
-  {
-    label: "Operations",
-    items: [
-      { label: "Finance",    href: "/finance",     icon: DollarSign },
-      { label: "Workflows",  href: "/workflows",   icon: CheckSquare },
-      { label: "Capture",    href: "/capture",     icon: MessageCircle },
-    ],
-  },
-  {
-    label: "Intelligence",
-    items: [
-      { label: "AI Memory",  href: "/memory",      icon: Brain },
-    ],
-  },
-];
+function useDueTodayCount() {
+  const [count, setCount] = useState<number | null>(null);
+  useEffect(() => {
+    const today = new Date().toISOString().split("T")[0]!;
+    fetch("/api/tasks?status=open&limit=200")
+      .then((r) => r.json() as Promise<{ tasks?: { due_date: string | null }[] }>)
+      .then((j) => {
+        const due = (j.tasks ?? []).filter((t) => t.due_date && t.due_date <= today).length;
+        setCount(due > 0 ? due : null);
+      })
+      .catch(() => setCount(null));
+  }, []);
+  return count;
+}
 
 export function Sidebar() {
-  const pathname = usePathname();
+  const pathname  = usePathname();
+  const dueToday  = useDueTodayCount();
+
+  const navigation: NavSection[] = [
+    {
+      label: "Core",
+      items: [
+        { label: "Dashboard",  href: "/dashboard",  icon: LayoutDashboard },
+        { label: "Tasks",      href: "/tasks",       icon: CheckSquare,    badge: dueToday != null ? String(dueToday) : null },
+        { label: "Analytics",  href: "/analytics",   icon: BarChart2 },
+      ],
+    },
+    {
+      label: "Wellbeing",
+      items: [
+        { label: "Habits",     href: "/habits",      icon: Activity },
+        { label: "Health",     href: "/health",      icon: Layers },
+        { label: "Journal",    href: "/journal",     icon: BookOpen },
+      ],
+    },
+    {
+      label: "Operations",
+      items: [
+        { label: "Finance",    href: "/finance",     icon: DollarSign },
+        { label: "CRM",        href: "/crm",         icon: Users2 },
+        { label: "Workflows",  href: "/workflows",   icon: CheckSquare },
+        { label: "Capture",    href: "/capture",     icon: MessageCircle },
+      ],
+    },
+    {
+      label: "Intelligence",
+      items: [
+        { label: "AI Memory",  href: "/memory",      icon: Brain },
+      ],
+    },
+  ];
 
   return (
     <aside

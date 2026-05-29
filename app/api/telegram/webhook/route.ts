@@ -207,6 +207,7 @@ async function handleMessage(message: TelegramMessage): Promise<void> {
     finance:   "💰",
     health:    "❤️",
     decision:  "⚖️",
+    journal:   "📖",
   };
 
   const urgencyLabel: Record<string, string> = {
@@ -278,6 +279,46 @@ async function routeCapture(args: RouteArgs): Promise<{ routedTo: string | null;
     if (error) throw error;
     const row = data as { id: string };
     return { routedTo: "task", routedId: row.id };
+  }
+
+  // journal — append to daily_logs.notes.journal as running text
+  if (classification.kind === "journal") {
+    const today = localDateKey();
+    const { data: existing } = await supabase
+      .from("daily_logs")
+      .select("id, notes")
+      .eq("user_id", userId)
+      .eq("log_date", today)
+      .maybeSingle();
+
+    const existingRow = existing as { id: string; notes: string | null } | null;
+    let notesObj: Record<string, unknown> = {};
+    if (existingRow?.notes) {
+      try { notesObj = JSON.parse(existingRow.notes) as Record<string, unknown>; } catch { /* ok */ }
+    }
+
+    // Append to journal text with timestamp prefix
+    const ts = new Intl.DateTimeFormat("en-GB", {
+      hour: "2-digit", minute: "2-digit", timeZone: "Europe/Vilnius",
+    }).format(new Date());
+    const existing_journal = typeof notesObj["journal"] === "string" ? notesObj["journal"] : "";
+    const separator        = existing_journal ? "\n\n" : "";
+    notesObj["journal"]    = `${existing_journal}${separator}[${ts}] ${rawText}`;
+
+    let logId: string;
+    if (existingRow) {
+      await supabase.from("daily_logs")
+        .update({ notes: JSON.stringify(notesObj) } as never)
+        .eq("id", existingRow.id);
+      logId = existingRow.id;
+    } else {
+      const { data, error } = await supabase.from("daily_logs")
+        .insert({ user_id: userId, log_date: today, notes: JSON.stringify(notesObj) } as never)
+        .select("id").single();
+      if (error) throw error;
+      logId = (data as { id: string }).id;
+    }
+    return { routedTo: "daily_log", routedId: logId };
   }
 
   // daily_logs — habit_log, finance, health, decision, note

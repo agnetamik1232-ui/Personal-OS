@@ -82,6 +82,31 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
         .insert({ log_date: SENTINEL, user_id: userId, notes: JSON.stringify(notes) } as never);
     }
 
+    // Also record a net-worth history point for today's date
+    try {
+      const today = body.as_of;
+      const { data: todayRow } = await supabase
+        .from("daily_logs")
+        .select("id, notes")
+        .eq("user_id", userId)
+        .eq("log_date", today)
+        .maybeSingle();
+
+      const todayRowTyped = todayRow as RawRow | null;
+      let todayNotes: Record<string, unknown> = {};
+      try { todayNotes = JSON.parse(todayRowTyped?.notes ?? "{}") as Record<string, unknown>; } catch { /**/ }
+      todayNotes["finance_snapshot"] = { net_worth: snapshot.net_worth, currency: snapshot.currency };
+
+      if (todayRowTyped) {
+        await supabase.from("daily_logs")
+          .update({ notes: JSON.stringify(todayNotes) } as never)
+          .eq("id", todayRowTyped.id);
+      } else {
+        await supabase.from("daily_logs")
+          .insert({ log_date: today, user_id: userId, notes: JSON.stringify(todayNotes) } as never);
+      }
+    } catch { /* non-critical, don't fail the main save */ }
+
     return NextResponse.json({ ok: true, snapshot });
   } catch (e) {
     return NextResponse.json({ error: e instanceof Error ? e.message : "Error" }, { status: 500 });
