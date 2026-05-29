@@ -87,7 +87,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     const breakMin  = body.break_min  ?? 60;
 
     // Split-aware gross pay calculation (night hours 22:00–06:00 at night rate)
-    const { hours_worked, gross_pay } = calcGrossPaySplit(
+    const { hours_worked, gross_pay, regular_hours, night_hours } = calcGrossPaySplit(
       startTime, endTime, breakMin, body.shift_type, settings,
     );
 
@@ -95,17 +95,19 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     const isHoliday = body.is_holiday ?? holidays.has(body.date);
 
     const row = {
-      user_id:      uid(),
-      date:         body.date,
-      shift_type:   body.shift_type,
-      start_time:   startTime,
-      end_time:     endTime,
-      break_min:    breakMin,
-      notes:        body.notes ?? null,
+      user_id:       uid(),
+      date:          body.date,
+      shift_type:    body.shift_type,
+      start_time:    startTime,
+      end_time:      endTime,
+      break_min:     breakMin,
+      notes:         body.notes ?? null,
       hours_worked,
+      regular_hours,
+      night_hours,
       gross_pay,
-      is_holiday:   isHoliday,
-      updated_at:   new Date().toISOString(),
+      is_holiday:    isHoliday,
+      updated_at:    new Date().toISOString(),
     };
 
     const { data, error } = await supabase
@@ -137,7 +139,7 @@ export async function PATCH(req: NextRequest): Promise<NextResponse> {
     const breakMin  = body.break_min  ?? cur.break_min;
     const dateStr   = body.date       ?? cur.date;
 
-    const { hours_worked, gross_pay } = calcGrossPaySplit(
+    const { hours_worked, gross_pay, regular_hours, night_hours } = calcGrossPaySplit(
       startTime, endTime, breakMin, shiftType, settings,
     );
 
@@ -145,16 +147,18 @@ export async function PATCH(req: NextRequest): Promise<NextResponse> {
     const isHoliday = body.is_holiday ?? holidays.has(dateStr);
 
     const patch = {
-      date:         dateStr,
-      shift_type:   shiftType,
-      start_time:   startTime,
-      end_time:     endTime,
-      break_min:    breakMin,
-      notes:        body.notes !== undefined ? body.notes : cur.notes,
+      date:          dateStr,
+      shift_type:    shiftType,
+      start_time:    startTime,
+      end_time:      endTime,
+      break_min:     breakMin,
+      notes:         body.notes !== undefined ? body.notes : cur.notes,
       hours_worked,
+      regular_hours,
+      night_hours,
       gross_pay,
-      is_holiday:   isHoliday,
-      updated_at:   new Date().toISOString(),
+      is_holiday:    isHoliday,
+      updated_at:    new Date().toISOString(),
     };
 
     const { data, error } = await supabase

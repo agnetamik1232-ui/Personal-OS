@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/server";
-import { calcNet, calcTax } from "@/lib/work/salary";
+import { calcNet, calcTax, calcNightSplit } from "@/lib/work/salary";
 import type { WorkShift, WorkSettings, WorkSummary } from "@/lib/work/types";
 
 function uid(): string {
@@ -50,11 +50,22 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     for (const s of shifts) {
       total_hours += s.hours_worked;
       gross_salary += s.gross_pay;
+      // Use stored split columns; fall back to live recalc for old rows (regular_hours=0, night_hours=0)
+      let sNight   = s.night_hours   ?? 0;
+      let sRegular = s.regular_hours ?? 0;
+      const isNightType = s.shift_type === "night" || s.shift_type === "overtime_night";
+      if (isNightType && sNight === 0 && s.hours_worked > 0) {
+        const split = calcNightSplit(s.start_time, s.end_time, s.break_min, settings.night_start, settings.night_end);
+        sNight   = split.nightHours;
+        sRegular = split.regularHours;
+      } else if (!isNightType && sRegular === 0) {
+        sRegular = s.hours_worked;
+      }
       switch (s.shift_type) {
-        case "day":            day_hours += s.hours_worked; break;
-        case "night":          night_hours += s.hours_worked; break;
-        case "overtime_day":   overtime_hours += s.hours_worked; day_hours += s.hours_worked; break;
-        case "overtime_night": overtime_hours += s.hours_worked; night_hours += s.hours_worked; break;
+        case "day":            day_hours += sRegular; break;
+        case "night":          night_hours += sNight; day_hours += sRegular; break;
+        case "overtime_day":   overtime_hours += s.hours_worked; day_hours += sRegular; break;
+        case "overtime_night": overtime_hours += s.hours_worked; night_hours += sNight; day_hours += sRegular; break;
         case "holiday":        holiday_hours += s.hours_worked; break;
         case "day_off":        day_off_hours += s.hours_worked; break;
         case "vacation":       vacation_days += 1; break;

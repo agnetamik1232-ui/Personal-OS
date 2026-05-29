@@ -18,9 +18,11 @@ export interface WorkShift {
   end_time:     string;        // HH:MM
   break_min:    number;
   notes:        string | null;
-  hours_worked: number;
-  gross_pay:    number;
-  is_holiday:   boolean;
+  hours_worked:   number;
+  regular_hours:  number;
+  night_hours:    number;
+  gross_pay:      number;
+  is_holiday:     boolean;
   created_at:   string;
   updated_at:   string;
 }
