@@ -13,7 +13,7 @@ const DEFAULT_SETTINGS = {
   mult_day: 1.0, mult_night: 1.5, mult_overtime_day: 1.5,
   mult_overtime_night: 2.0, mult_day_off: 2.0, mult_holiday: 2.0,
   mult_vacation: 1.0, mult_sick: 0.0, mult_unpaid: 0.0, mult_custom: 1.0,
-  night_start: "22:00", night_end: "06:00",
+  night_start: "18:00", night_end: "06:00",
 };
 
 export async function GET(): Promise<NextResponse> {

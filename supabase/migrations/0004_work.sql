@@ -35,7 +35,7 @@ create table if not exists public.work_settings (
   mult_sick       numeric(4,2) not null default 0.00,
   mult_unpaid     numeric(4,2) not null default 0.00,
   mult_custom     numeric(4,2) not null default 1.00,
-  night_start     text not null default '22:00',
+  night_start     text not null default '18:00',
   night_end       text not null default '06:00',
   updated_at      timestamptz not null default now()
 );

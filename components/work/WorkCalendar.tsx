@@ -426,11 +426,30 @@ function ShiftModal({
   onSave:    (form: ShiftFormData) => void;
   onDelete:  () => void;
 }): React.JSX.Element {
-  const [shiftType, setShiftType] = useState<ShiftType>(editing?.shift_type ?? (isHoliday ? "holiday" : "day"));
-  const [startTime, setStartTime] = useState(editing?.start_time ?? "09:00");
-  const [endTime, setEndTime]     = useState(editing?.end_time ?? "17:00");
-  const [breakMin, setBreakMin]   = useState(editing?.break_min ?? 30);
+  // Default times per shift type (your schedule: day 06:00–18:00, night 18:00–06:00)
+  function defaultTimes(type: ShiftType): { start: string; end: string } {
+    if (type === "night" || type === "overtime_night") return { start: "18:00", end: "06:00" };
+    return { start: "06:00", end: "18:00" };
+  }
+
+  const initialType = editing?.shift_type ?? (isHoliday ? "holiday" : "day");
+  const initialDefaults = defaultTimes(initialType);
+
+  const [shiftType, setShiftType] = useState<ShiftType>(initialType);
+  const [startTime, setStartTime] = useState(editing?.start_time ?? initialDefaults.start);
+  const [endTime, setEndTime]     = useState(editing?.end_time   ?? initialDefaults.end);
+  const [breakMin, setBreakMin]   = useState(editing?.break_min  ?? 60);
   const [notes, setNotes]         = useState(editing?.notes ?? "");
+
+  // When user switches shift type, auto-fill times if they haven't been manually changed
+  function handleShiftTypeChange(type: ShiftType): void {
+    if (!editing) {
+      const d = defaultTimes(type);
+      setStartTime(d.start);
+      setEndTime(d.end);
+    }
+    setShiftType(type);
+  }
 
   const hours = useMemo(() => calcHoursWorked(startTime, endTime, breakMin), [startTime, endTime, breakMin]);
   const mult  = multForType(shiftType, settings);
@@ -477,7 +496,7 @@ function ShiftModal({
                   key={t}
                   className={`wrk-shift-type-btn${active ? " wrk-shift-type-btn-active" : ""}`}
                   style={active ? { borderColor: SHIFT_META[t].color, background: `${SHIFT_META[t].color}12` } : undefined}
-                  onClick={() => setShiftType(t)}
+                  onClick={() => handleShiftTypeChange(t)}
                   type="button"
                 >
                   <span className="wrk-shift-type-dot" style={{ background: SHIFT_META[t].color }} />
