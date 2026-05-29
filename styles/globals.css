@@ -4829,3 +4829,12 @@
   .wrk-shift-type-grid { grid-template-columns: 1fr 1fr; }
   .wrk-cal-cell { min-height: 64px; }
 }
+
+/* Work calendar — night split preview */
+.wrk-preview-split {
+  font-size: 11px;
+  color: #7C3AED;
+  font-weight: 600;
+  margin-left: 6px;
+  opacity: 0.85;
+}

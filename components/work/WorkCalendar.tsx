@@ -17,7 +17,7 @@ import {
   SHIFT_META,
 } from "@/lib/work/types";
 import { getLithuanianHolidays, HOLIDAY_NAMES } from "@/lib/work/holidays";
-import { calcHoursWorked } from "@/lib/work/salary";
+import { calcHoursWorked, calcNightSplit } from "@/lib/work/salary";
 
 const WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"] as const;
 const MONTH_NAMES = [
@@ -451,9 +451,25 @@ function ShiftModal({
     setShiftType(type);
   }
 
-  const hours = useMemo(() => calcHoursWorked(startTime, endTime, breakMin), [startTime, endTime, breakMin]);
-  const mult  = multForType(shiftType, settings);
-  const gross = Math.round(hours * rate * mult * 100) / 100;
+  // Night shifts split: 18:00–22:00 at regular rate, 22:00–06:00 at night rate
+  const isNightType = shiftType === "night" || shiftType === "overtime_night";
+  const nightStart  = settings?.night_start ?? "22:00";
+  const nightEnd    = settings?.night_end   ?? "06:00";
+
+  const { regularHours, nightHours, totalHours } = useMemo(() => {
+    if (!isNightType) return { regularHours: 0, nightHours: 0, totalHours: calcHoursWorked(startTime, endTime, breakMin) };
+    return calcNightSplit(startTime, endTime, breakMin, nightStart, nightEnd);
+  }, [startTime, endTime, breakMin, isNightType, nightStart, nightEnd]);
+
+  const hours = totalHours;
+  const gross = useMemo(() => {
+    if (!isNightType) {
+      return Math.round(hours * rate * multForType(shiftType, settings) * 100) / 100;
+    }
+    const dayMult   = shiftType === "night" ? (settings?.mult_day ?? 1) : (settings?.mult_overtime_day ?? 1.5);
+    const nightMult = shiftType === "night" ? (settings?.mult_night ?? 1.5) : (settings?.mult_overtime_night ?? 2);
+    return Math.round((regularHours * rate * dayMult + nightHours * rate * nightMult) * 100) / 100;
+  }, [hours, rate, shiftType, settings, isNightType, regularHours, nightHours]);
 
   const holidayName = useMemo(() => HOLIDAY_NAMES[date.slice(5)], [date]);
   const dateLabel = useMemo(() => {
@@ -525,7 +541,13 @@ function ShiftModal({
         </div>
 
         <div className="wrk-hours-preview">
-          <Clock size={15} /> {fmtH(hours)} worked
+          <Clock size={15} />
+          <span>{fmtH(hours)} worked</span>
+          {isNightType && nightHours > 0 && (
+            <span className="wrk-preview-split">
+              {fmtH(regularHours)} regular · {fmtH(nightHours)} night (22–06)
+            </span>
+          )}
           <span style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 4 }}>
             <Euro size={14} /> {fmt(gross, currency)}
           </span>

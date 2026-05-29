@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/server";
-import { calcHoursWorked, getMultiplier, calcGrossPay } from "@/lib/work/salary";
+import { calcGrossPaySplit } from "@/lib/work/salary";
 import { getLithuanianHolidays } from "@/lib/work/holidays";
 import type { WorkShift, WorkSettings } from "@/lib/work/types";
 
@@ -10,11 +10,12 @@ function uid(): string {
   return v;
 }
 
-const DEFAULT_SETTINGS = {
+const DEFAULT_SETTINGS: Omit<WorkSettings, "id" | "updated_at"> = {
   hourly_rate: 7.0, currency: "EUR", tax_rate: 0.36,
   mult_day: 1.0, mult_night: 1.5, mult_overtime_day: 1.5,
   mult_overtime_night: 2.0, mult_day_off: 2.0, mult_holiday: 2.0,
   mult_vacation: 1.0, mult_sick: 0.0, mult_unpaid: 0.0, mult_custom: 1.0,
+  // Night PAY window per Lithuanian law: 22:00–06:00
   night_start: "22:00", night_end: "06:00",
 };
 
@@ -70,12 +71,14 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     const supabase = await createAdminClient();
     const settings = await loadSettings(supabase);
 
-    const startTime = body.start_time ?? "09:00";
-    const endTime   = body.end_time   ?? "17:00";
-    const breakMin  = body.break_min  ?? 0;
-    const hours     = calcHoursWorked(startTime, endTime, breakMin);
-    const mult      = getMultiplier(body.shift_type, settings);
-    const gross     = calcGrossPay(hours, settings.hourly_rate, mult);
+    const startTime = body.start_time ?? "06:00";
+    const endTime   = body.end_time   ?? "18:00";
+    const breakMin  = body.break_min  ?? 60;
+
+    // Split-aware gross pay calculation (night hours 22:00–06:00 at night rate)
+    const { hours_worked, gross_pay } = calcGrossPaySplit(
+      startTime, endTime, breakMin, body.shift_type, settings,
+    );
 
     const holidays  = getLithuanianHolidays(parseInt(body.date.slice(0, 4), 10));
     const isHoliday = body.is_holiday ?? holidays.has(body.date);
@@ -88,8 +91,8 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       end_time:     endTime,
       break_min:    breakMin,
       notes:        body.notes ?? null,
-      hours_worked: hours,
-      gross_pay:    gross,
+      hours_worked,
+      gross_pay,
       is_holiday:   isHoliday,
       updated_at:   new Date().toISOString(),
     };
@@ -122,9 +125,10 @@ export async function PATCH(req: NextRequest): Promise<NextResponse> {
     const endTime   = body.end_time   ?? cur.end_time;
     const breakMin  = body.break_min  ?? cur.break_min;
     const dateStr   = body.date       ?? cur.date;
-    const hours     = calcHoursWorked(startTime, endTime, breakMin);
-    const mult      = getMultiplier(shiftType, settings);
-    const gross     = calcGrossPay(hours, settings.hourly_rate, mult);
+
+    const { hours_worked, gross_pay } = calcGrossPaySplit(
+      startTime, endTime, breakMin, shiftType, settings,
+    );
 
     const holidays  = getLithuanianHolidays(parseInt(dateStr.slice(0, 4), 10));
     const isHoliday = body.is_holiday ?? holidays.has(dateStr);
@@ -136,8 +140,8 @@ export async function PATCH(req: NextRequest): Promise<NextResponse> {
       end_time:     endTime,
       break_min:    breakMin,
       notes:        body.notes !== undefined ? body.notes : cur.notes,
-      hours_worked: hours,
-      gross_pay:    gross,
+      hours_worked,
+      gross_pay,
       is_holiday:   isHoliday,
       updated_at:   new Date().toISOString(),
     };
