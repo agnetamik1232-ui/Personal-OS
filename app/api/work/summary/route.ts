@@ -1,0 +1,95 @@
+import { type NextRequest, NextResponse } from "next/server";
+import { createAdminClient } from "@/lib/supabase/server";
+import { calcNet, calcTax } from "@/lib/work/salary";
+import type { WorkShift, WorkSettings, WorkSummary } from "@/lib/work/types";
+
+function uid(): string {
+  const v = process.env["OWNER_USER_ID"];
+  if (!v) throw new Error("OWNER_USER_ID not set");
+  return v;
+}
+
+const DEFAULT_SETTINGS = {
+  hourly_rate: 7.0, currency: "EUR", tax_rate: 0.36,
+  mult_day: 1.0, mult_night: 1.5, mult_overtime_day: 1.5,
+  mult_overtime_night: 2.0, mult_day_off: 2.0, mult_holiday: 2.0,
+  mult_vacation: 1.0, mult_sick: 0.0, mult_unpaid: 0.0, mult_custom: 1.0,
+  night_start: "22:00", night_end: "06:00",
+};
+
+export async function GET(req: NextRequest): Promise<NextResponse> {
+  try {
+    const year  = parseInt(req.nextUrl.searchParams.get("year")  ?? "0", 10);
+    const month = parseInt(req.nextUrl.searchParams.get("month") ?? "0", 10);
+    if (!year || !month) return NextResponse.json({ error: "year and month required" }, { status: 400 });
+
+    const mm    = String(month).padStart(2, "0");
+    const start = `${year}-${mm}-01`;
+    const last  = new Date(year, month, 0).getDate();
+    const end   = `${year}-${mm}-${String(last).padStart(2, "0")}`;
+
+    const supabase = await createAdminClient();
+
+    const [{ data: settData }, { data: shiftData, error: shiftErr }] = await Promise.all([
+      supabase.from("work_settings").select("*").eq("user_id", uid()).single(),
+      supabase.from("work_shifts").select("*").eq("user_id", uid())
+        .gte("date", start).lte("date", end).order("date", { ascending: true }),
+    ]);
+    if (shiftErr) return NextResponse.json({ error: shiftErr.message }, { status: 500 });
+
+    const settings: WorkSettings = settData
+      ? (settData as unknown as WorkSettings)
+      : { id: "", updated_at: new Date().toISOString(), ...DEFAULT_SETTINGS };
+
+    const shifts = (shiftData ?? []) as unknown as WorkShift[];
+
+    let total_hours = 0, day_hours = 0, night_hours = 0, overtime_hours = 0;
+    let holiday_hours = 0, day_off_hours = 0, vacation_days = 0, sick_days = 0;
+    let days_worked = 0, gross_salary = 0;
+
+    for (const s of shifts) {
+      total_hours += s.hours_worked;
+      gross_salary += s.gross_pay;
+      switch (s.shift_type) {
+        case "day":            day_hours += s.hours_worked; break;
+        case "night":          night_hours += s.hours_worked; break;
+        case "overtime_day":   overtime_hours += s.hours_worked; day_hours += s.hours_worked; break;
+        case "overtime_night": overtime_hours += s.hours_worked; night_hours += s.hours_worked; break;
+        case "holiday":        holiday_hours += s.hours_worked; break;
+        case "day_off":        day_off_hours += s.hours_worked; break;
+        case "vacation":       vacation_days += 1; break;
+        case "sick":           sick_days += 1; break;
+        case "unpaid":         break;
+        case "custom":         break;
+      }
+      if (s.hours_worked > 0) days_worked += 1;
+    }
+
+    const round = (n: number): number => Math.round(n * 100) / 100;
+    gross_salary = round(gross_salary);
+    const tax_amount = calcTax(gross_salary, settings.tax_rate);
+    const net_salary = calcNet(gross_salary, settings.tax_rate);
+    const avg_hourly = total_hours > 0 ? round(gross_salary / total_hours) : 0;
+
+    const summary: WorkSummary = {
+      year, month,
+      total_hours:    round(total_hours),
+      day_hours:      round(day_hours),
+      night_hours:    round(night_hours),
+      overtime_hours: round(overtime_hours),
+      holiday_hours:  round(holiday_hours),
+      day_off_hours:  round(day_off_hours),
+      vacation_days,
+      sick_days,
+      days_worked,
+      gross_salary,
+      tax_amount,
+      net_salary,
+      avg_hourly,
+      shifts,
+      currency: settings.currency,
+    };
+
+    return NextResponse.json({ summary });
+  } catch (e) { return NextResponse.json({ error: String(e) }, { status: 500 }); }
+}

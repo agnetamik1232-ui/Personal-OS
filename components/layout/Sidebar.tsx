@@ -16,6 +16,7 @@ import {
   ChevronRight,
   BookOpen,
   Users2,
+  Briefcase,
 } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
 
@@ -70,6 +71,7 @@ export function Sidebar() {
     {
       label: "Operations",
       items: [
+        { label: "Work",       href: "/work",        icon: Briefcase },
         { label: "Finance",    href: "/finance",     icon: DollarSign },
         { label: "CRM",        href: "/crm",         icon: Users2 },
         { label: "Workflows",  href: "/workflows",   icon: CheckSquare },

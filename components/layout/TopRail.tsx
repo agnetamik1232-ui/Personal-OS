@@ -12,6 +12,7 @@ const TABS = [
   { label: "Habits",   href: "/habits"    },
   { label: "Health",   href: "/health"    },
   { label: "Journal",  href: "/journal"   },
+  { label: "Work",     href: "/work"      },
   { label: "Finance",  href: "/finance"   },
   { label: "CRM",      href: "/crm"       },
   { label: "Review",   href: "/analytics" },
