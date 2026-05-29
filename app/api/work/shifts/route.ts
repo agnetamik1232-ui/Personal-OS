@@ -24,7 +24,18 @@ type SupabaseClient = Awaited<ReturnType<typeof createAdminClient>>;
 async function loadSettings(supabase: SupabaseClient): Promise<WorkSettings> {
   const { data } = await supabase
     .from("work_settings").select("*").eq("user_id", uid()).single();
-  if (data) return data as unknown as WorkSettings;
+  if (data) {
+    const s = data as unknown as WorkSettings;
+    // Self-heal: correct night_start if accidentally seeded as "18:00"
+    if (s.night_start === "18:00") {
+      s.night_start = "22:00";
+      void supabase
+        .from("work_settings")
+        .update({ night_start: "22:00", updated_at: new Date().toISOString() } as never)
+        .eq("user_id", uid());
+    }
+    return s;
+  }
   return { id: "", updated_at: new Date().toISOString(), ...DEFAULT_SETTINGS };
 }
 

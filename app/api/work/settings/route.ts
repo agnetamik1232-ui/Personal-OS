@@ -31,7 +31,16 @@ export async function GET(): Promise<NextResponse> {
       return NextResponse.json({ settings: created });
     }
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-    return NextResponse.json({ settings: data });
+    // Self-heal: if night_start was accidentally seeded as "18:00", correct it
+    const row = data as Record<string, unknown>;
+    if (row["night_start"] === "18:00") {
+      await supabase
+        .from("work_settings")
+        .update({ night_start: "22:00", updated_at: new Date().toISOString() } as never)
+        .eq("user_id", uid());
+      row["night_start"] = "22:00";
+    }
+    return NextResponse.json({ settings: row });
   } catch (e) { return NextResponse.json({ error: String(e) }, { status: 500 }); }
 }
 
