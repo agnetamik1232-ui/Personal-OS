@@ -41,9 +41,10 @@ export function calcNightSplit(
   const nightRaw     = Math.max(0, overlapEnd - overlapStart);
   const regularRaw   = (eMin - sMin) - nightRaw;
 
-  // Apply break to regular portion first; overflow into night
-  const breakInRegular = Math.min(breakMin, regularRaw);
-  const breakInNight   = breakMin - breakInRegular;
+  // Break falls in the night window (e.g. 23:00–00:00) — deduct from night first,
+  // overflow into regular only if night portion isn't long enough.
+  const breakInNight   = Math.min(breakMin, nightRaw);
+  const breakInRegular = breakMin - breakInNight;
 
   const regularMin = Math.max(0, regularRaw - breakInRegular);
   const nightMin   = Math.max(0, nightRaw   - breakInNight);
