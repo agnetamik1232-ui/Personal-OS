@@ -1,52 +1,66 @@
-import { KpiRow }             from "./KpiRow";
-import { FinanceCard }        from "./FinanceCard";
-import { SessionCard }        from "./SessionCard";
-import { HabitsCard }         from "./HabitsCard";
-import { NutritionCard }      from "./NutritionCard";
-import { CalendarCard }       from "./CalendarCard";
-import { GoalsCard }          from "./GoalsCard";
-import { InsightsCard }       from "./InsightsCard";
-import { WeeklySnapshotCard } from "./WeeklySnapshotCard";
-import { CheckInCard }        from "@/components/checkin/CheckInCard";
+import { KpiRow }              from "./KpiRow";
+import { TodayFocusCard }      from "./TodayFocusCard";
+import { MomentumCard }        from "./MomentumCard";
+import { AttentionCard }       from "./AttentionCard";
+import { BiggestWinCard }      from "./BiggestWinCard";
+import { CheckInCard }         from "@/components/checkin/CheckInCard";
+import { SalaryForecastCard }  from "./SalaryForecastCard";
+import { HealthSnapshotCard }  from "./HealthSnapshotCard";
+import { HabitsCard }          from "./HabitsCard";
+import { GoalsCard }           from "./GoalsCard";
+import { FinanceCard }         from "./FinanceCard";
+import { CalendarCard }        from "./CalendarCard";
+import { QuickActionsBar }     from "./QuickActionsBar";
 
 export function DashboardGrid() {
   return (
-    <div className="dash-v2">
+    <>
+      <div className="dash-v2">
 
-      {/* ── Row 0: Executive KPIs ── */}
-      <div className="dash-full">
-        <KpiRow />
+        {/* ── Row 0: Executive KPIs ── */}
+        <div className="dash-full">
+          <KpiRow />
+        </div>
+
+        {/* ── Row 1: Today's Focus + Momentum ── */}
+        <div className="dash-focus-row">
+          <TodayFocusCard />
+          <MomentumCard />
+        </div>
+
+        {/* ── Row 2: Attention + Biggest Win ── */}
+        <div className="dash-two-col">
+          <AttentionCard />
+          <BiggestWinCard />
+        </div>
+
+        {/* ── Row 3: Daily Check-In (full width) ── */}
+        <div className="dash-full">
+          <CheckInCard />
+        </div>
+
+        {/* ── Row 4: Salary Forecast + Health Snapshot ── */}
+        <div className="dash-two-col">
+          <SalaryForecastCard />
+          <HealthSnapshotCard />
+        </div>
+
+        {/* ── Row 5: Habits + Goals ── */}
+        <div className="dash-two-col">
+          <HabitsCard />
+          <GoalsCard />
+        </div>
+
+        {/* ── Row 6: Finance + Calendar ── */}
+        <div className="dash-two-col">
+          <FinanceCard />
+          <CalendarCard />
+        </div>
+
       </div>
 
-      {/* ── Row 1: Daily Check-In (full width hero) ── */}
-      <div className="dash-full">
-        <CheckInCard />
-      </div>
-
-      {/* ── Row 2: Deep Work + Calendar ── */}
-      <div className="dash-two-col">
-        <SessionCard />
-        <CalendarCard />
-      </div>
-
-      {/* ── Row 3: Habits + Finance ── */}
-      <div className="dash-two-col">
-        <HabitsCard />
-        <FinanceCard />
-      </div>
-
-      {/* ── Row 4: Goals + Insights ── */}
-      <div className="dash-two-col">
-        <GoalsCard />
-        <InsightsCard />
-      </div>
-
-      {/* ── Row 5: Weekly Snapshot + Nutrition ── */}
-      <div className="dash-two-col">
-        <WeeklySnapshotCard />
-        <NutritionCard />
-      </div>
-
-    </div>
+      {/* ── Quick Actions Bar (fixed bottom) ── */}
+      <QuickActionsBar />
+    </>
   );
 }
