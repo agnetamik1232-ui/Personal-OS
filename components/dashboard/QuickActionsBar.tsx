@@ -3,49 +3,40 @@
 import { useState } from "react";
 import Link from "next/link";
 import { CheckInModal } from "@/components/checkin/CheckInModal";
-import type { DailyCheckin } from "@/lib/checkin/types";
 
 const ACTIONS = [
-  { icon: "✅", label: "Task",    href: "/tasks?add=1"   },
-  { icon: "💸", label: "Expense", href: "/finance?add=1" },
-  { icon: "🕐", label: "Shift",   href: "/work?add=1"    },
-  { icon: "📝", label: "Journal", href: "/journal"       },
-  { icon: "🎯", label: "Goal",    href: "/goals?add=1"   },
+  { icon: "✅", label: "Task",    href: "/tasks"   },
+  { icon: "🕐", label: "Shift",   href: "/work"    },
+  { icon: "💸", label: "Expense", href: "/finance" },
+  { icon: "📝", label: "Journal", href: "/journal" },
+  { icon: "🎯", label: "Goal",    href: "/goals"   },
 ];
 
 export function QuickActionsBar() {
   const [showCheckin, setShowCheckin] = useState(false);
 
-  function onSaved(_c: DailyCheckin) {
-    setShowCheckin(false);
-  }
-
   return (
     <>
-      <div className="qa-bar">
-        <button
-          type="button"
-          className="qa-item qa-checkin"
-          onClick={() => setShowCheckin(true)}
-          aria-label="Daily Check-In"
-        >
-          <span className="qa-icon">💬</span>
-          <span className="qa-label">Check-In</span>
-        </button>
-
-        {ACTIONS.map(a => (
-          <Link key={a.href} href={a.href} className="qa-item">
-            <span className="qa-icon">{a.icon}</span>
-            <span className="qa-label">{a.label}</span>
-          </Link>
-        ))}
+      <div className="qa2-bar">
+        <div className="qa2-inner">
+          <button type="button" className="qa2-checkin" onClick={() => setShowCheckin(true)}>
+            <span>💬</span> Check-In
+          </button>
+          <div className="qa2-divider" />
+          {ACTIONS.map(a => (
+            <Link key={a.href} href={a.href} className="qa2-item">
+              <span>{a.icon}</span>
+              <span className="qa2-label">{a.label}</span>
+            </Link>
+          ))}
+        </div>
       </div>
 
       {showCheckin && (
         <CheckInModal
           existing={null}
           onClose={() => setShowCheckin(false)}
-          onSaved={onSaved}
+          onSaved={() => setShowCheckin(false)}
         />
       )}
     </>

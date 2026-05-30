@@ -1,48 +1,45 @@
-import { KpiRow }              from "./KpiRow";
-import { TodayFocusCard }      from "./TodayFocusCard";
-import { AttentionCard }       from "./AttentionCard";
-import { CheckInCard }         from "@/components/checkin/CheckInCard";
-import { SalaryForecastCard }  from "./SalaryForecastCard";
-import { HealthSnapshotCard }  from "./HealthSnapshotCard";
-import { HabitsCard }          from "./HabitsCard";
-import { GoalsCard }           from "./GoalsCard";
-import { CalendarCard }        from "./CalendarCard";
+import { KpiRow }             from "./KpiRow";
+import { ExecutiveBrief }     from "./ExecutiveBrief";
+import { TodayFocusSection }  from "./TodayFocusSection";
+import { SalaryForecastCard } from "./SalaryForecastCard";
+import { WorkSnapshot }       from "./WorkSnapshot";
+import { HealthSnapshotCard } from "./HealthSnapshotCard";
+import { CheckInGate }        from "./CheckInGate";
+import { QuickActionsBar }    from "./QuickActionsBar";
 
 export function DashboardGrid() {
   return (
     <>
-      <div className="dash-v2">
+      <div className="dash-v3">
 
-        {/* ── Row 0: Executive KPIs ── */}
+        {/* KPI strip */}
         <div className="dash-full">
           <KpiRow />
         </div>
 
-        {/* ── Command Zone: Focus · Attention · CheckIn ── */}
-        <div className="dash-command-zone">
-          <TodayFocusCard />
-          <AttentionCard />
-          <CheckInCard />
+        {/* AI Executive Brief */}
+        <div className="dash-full">
+          <ExecutiveBrief />
         </div>
 
-        {/* ── Row 4: Salary Forecast + Health Snapshot ── */}
-        <div className="dash-two-col">
+        {/* Today's Focus */}
+        <div className="dash-full">
+          <TodayFocusSection />
+        </div>
+
+        {/* Snapshot row */}
+        <div className="dash-three-col">
           <SalaryForecastCard />
+          <WorkSnapshot />
           <HealthSnapshotCard />
         </div>
 
-        {/* ── Row 5: Habits + Goals ── */}
-        <div className="dash-two-col">
-          <HabitsCard />
-          <GoalsCard />
-        </div>
-
-        {/* ── Row 6: Calendar ── */}
-        <div className="dash-full">
-          <CalendarCard />
-        </div>
+        {/* Check-In (only when not done today) */}
+        <CheckInGate />
 
       </div>
+
+      <QuickActionsBar />
     </>
   );
 }
