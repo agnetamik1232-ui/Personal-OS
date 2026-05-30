@@ -4,6 +4,8 @@ import { TodayFocusSection }  from "./TodayFocusSection";
 import { SalaryForecastCard } from "./SalaryForecastCard";
 import { WorkSnapshot }       from "./WorkSnapshot";
 import { HealthSnapshotCard } from "./HealthSnapshotCard";
+import { CalendarCard }       from "./CalendarCard";
+import { NutritionCard }      from "./NutritionCard";
 import { CheckInGate }        from "./CheckInGate";
 export function DashboardGrid() {
   return (
@@ -30,6 +32,12 @@ export function DashboardGrid() {
           <SalaryForecastCard />
           <WorkSnapshot />
           <HealthSnapshotCard />
+        </div>
+
+        {/* Calendar + Nutrition */}
+        <div className="dash-two-col">
+          <CalendarCard />
+          <NutritionCard />
         </div>
 
         {/* Check-In (only when not done today) */}

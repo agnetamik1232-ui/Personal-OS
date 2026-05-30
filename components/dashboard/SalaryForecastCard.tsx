@@ -75,10 +75,6 @@ export function SalaryForecastCard() {
             <div className="sf-stat-label">Hours worked</div>
           </div>
           <div className="sf-stat">
-            <div className="sf-stat-val">{fmt(gross)}</div>
-            <div className="sf-stat-label">Gross so far</div>
-          </div>
-          <div className="sf-stat">
             <div className="sf-stat-val sf-stat-green">{fmt(net)}</div>
             <div className="sf-stat-label">Net so far</div>
           </div>
@@ -86,12 +82,10 @@ export function SalaryForecastCard() {
             <div className="sf-stat-val sf-stat-green">{fmt(projNet)}</div>
             <div className="sf-stat-label">Projected net</div>
           </div>
-        </div>
-      )}
-
-      {!loading && projGross > gross && (
-        <div className="sf-projection">
-          Projected gross: <strong>{fmt(projGross)}</strong> by month end
+          <div className="sf-stat">
+            <div className="sf-stat-val">{days}</div>
+            <div className="sf-stat-label">Days to payday</div>
+          </div>
         </div>
       )}
     </Link>
