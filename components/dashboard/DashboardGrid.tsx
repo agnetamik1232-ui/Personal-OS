@@ -5,8 +5,6 @@ import { SalaryForecastCard } from "./SalaryForecastCard";
 import { WorkSnapshot }       from "./WorkSnapshot";
 import { HealthSnapshotCard } from "./HealthSnapshotCard";
 import { CheckInGate }        from "./CheckInGate";
-import { QuickActionsBar }    from "./QuickActionsBar";
-
 export function DashboardGrid() {
   return (
     <>
@@ -38,8 +36,6 @@ export function DashboardGrid() {
         <CheckInGate />
 
       </div>
-
-      <QuickActionsBar />
     </>
   );
 }
