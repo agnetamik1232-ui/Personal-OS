@@ -1,4 +1,5 @@
 import { KpiRow }              from "./KpiRow";
+import { CaptureCard }         from "./CaptureCard";
 import { TodayFocusCard }      from "./TodayFocusCard";
 import { MomentumCard }        from "./MomentumCard";
 import { AttentionCard }       from "./AttentionCard";
@@ -10,7 +11,6 @@ import { HabitsCard }          from "./HabitsCard";
 import { GoalsCard }           from "./GoalsCard";
 import { FinanceCard }         from "./FinanceCard";
 import { CalendarCard }        from "./CalendarCard";
-import { QuickActionsBar }     from "./QuickActionsBar";
 
 export function DashboardGrid() {
   return (
@@ -20,6 +20,11 @@ export function DashboardGrid() {
         {/* ── Row 0: Executive KPIs ── */}
         <div className="dash-full">
           <KpiRow />
+        </div>
+
+        {/* ── Capture ── */}
+        <div className="dash-full">
+          <CaptureCard />
         </div>
 
         {/* ── Row 1: Today's Focus + Momentum ── */}
@@ -58,9 +63,6 @@ export function DashboardGrid() {
         </div>
 
       </div>
-
-      {/* ── Quick Actions Bar (fixed bottom) ── */}
-      <QuickActionsBar />
     </>
   );
 }
