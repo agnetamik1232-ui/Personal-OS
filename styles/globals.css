@@ -421,6 +421,8 @@
   background: var(--bg);
   color: var(--ink-hex);
   font-family: var(--font-sans), 'Plus Jakarta Sans', sans-serif;
+  overflow-x: hidden;
+  max-width: 100vw;
 }
 .rail-wrap {
   padding: 18px 22px 0;
@@ -430,7 +432,7 @@
   padding: 0 22px 28px;
   max-width: 1640px;
   margin: 0 auto;
-  overflow-x: auto;
+  overflow-x: hidden;
 }
 
 /* ── Top rail ────────────────────────────────────────────────────────────── */
@@ -595,9 +597,9 @@
 }
 .hero-h1 {
   font-weight: 600;
-  font-size: 44px;
-  line-height: 1.02;
-  letter-spacing: -0.035em;
+  font-size: clamp(22px, 5vw, 44px);
+  line-height: 1.08;
+  letter-spacing: -0.025em;
   margin: 0;
   text-wrap: pretty;
   color: var(--ink-hex);
@@ -660,16 +662,16 @@
 /* Collapse to 2 cols on medium screens, 1 col on small */
 @media (max-width: 1100px) {
   .dash-grid {
-    grid-template-columns: 300px 1fr;
+    grid-template-columns: minmax(0, 280px) minmax(0, 1fr);
   }
   .dash-col:last-child {
     grid-column: 1 / -1;
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
     gap: 18px;
   }
 }
-@media (max-width: 700px) {
+@media (max-width: 860px) {
   .dash-grid {
     grid-template-columns: 1fr;
   }
@@ -6283,4 +6285,383 @@ body {
     bottom: 20px;
     right: 16px;
   }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   MOBILE HOTFIX — fixes screenshot issues (hero clipping, padding, overflow)
+   Added after full audit of live mobile rendering
+═══════════════════════════════════════════════════════════════════════════ */
+
+/* Prevent ANY horizontal overflow globally */
+html, body {
+  overflow-x: hidden;
+  max-width: 100vw;
+}
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+/* Shell page — add top padding on mobile to clear sticky mobile nav bar */
+@media (max-width: 768px) {
+  .shell-bg {
+    overflow-x: hidden;
+    max-width: 100vw;
+  }
+  .shell-page {
+    padding-top: 8px;
+    overflow-x: hidden;
+    width: 100%;
+    max-width: 100vw;
+  }
+}
+
+/* Hero — completely rewritten for mobile
+   The 44px heading was the #1 visual problem causing clipping */
+@media (max-width: 768px) {
+  .hero {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin: 14px 0 16px;
+    width: 100%;
+  }
+  .hero-h1 {
+    font-size: 26px !important;
+    line-height: 1.2;
+    letter-spacing: -0.02em;
+    word-break: break-word;
+    overflow-wrap: break-word;
+    white-space: normal;
+    width: 100%;
+  }
+  .hero-sub { display: none; }
+  .hero-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .meta-chip {
+    font-size: 11px;
+    padding: 6px 10px;
+  }
+}
+
+@media (max-width: 390px) {
+  .hero-h1 {
+    font-size: 22px !important;
+  }
+  .meta-chip { display: none; }
+}
+
+/* KPI row — 2 columns on mobile, 1 on very small */
+@media (max-width: 768px) {
+  .kpi-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    width: 100%;
+  }
+  .kpi-card {
+    min-width: 0;
+    width: 100%;
+  }
+}
+@media (max-width: 390px) {
+  .kpi-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Dashboard grid — single column */
+@media (max-width: 768px) {
+  .dash-grid,
+  .dash-two-col {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    width: 100%;
+  }
+}
+
+/* Cards — no fixed widths, no overflow */
+@media (max-width: 768px) {
+  .card {
+    width: 100%;
+    min-width: 0;
+    overflow: hidden;
+  }
+}
+
+/* Weekly Snapshot / wkly grid */
+@media (max-width: 768px) {
+  .wkly-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  .wkly-tile {
+    padding: 12px;
+  }
+  .wkly-tile-value {
+    font-size: 20px;
+  }
+}
+@media (max-width: 390px) {
+  .wkly-grid { grid-template-columns: 1fr; }
+}
+
+/* Work Session card — clipped on left in screenshot */
+@media (max-width: 768px) {
+  .session-card,
+  .session-layout {
+    width: 100%;
+    min-width: 0;
+    overflow: hidden;
+  }
+  .session-focus {
+    font-size: 18px;
+  }
+  .session-input {
+    width: 100%;
+    font-size: 15px;
+  }
+  .session-duration-row {
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .session-dur-btn {
+    min-height: 44px;
+    padding: 8px 14px;
+  }
+}
+
+/* AI Insights card */
+@media (max-width: 768px) {
+  .ins-card { width: 100%; }
+  .ins-grid  { grid-template-columns: 1fr; }
+}
+
+/* Weekly snapshot card */
+@media (max-width: 768px) {
+  .wkly-card { width: 100%; }
+}
+
+/* Finance fin3 tabs — horizontal scroll */
+@media (max-width: 768px) {
+  .fin3-tabs {
+    overflow-x: auto;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    flex-wrap: nowrap;
+    width: 100%;
+  }
+  .fin3-tabs::-webkit-scrollbar { display: none; }
+  .fin3-tab { white-space: nowrap; flex-shrink: 0; }
+  .fin3-wrap, .fin3-body { width: 100%; overflow-x: hidden; }
+}
+
+/* Finance table → card rows on mobile */
+@media (max-width: 600px) {
+  .fin3-table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .fin3-table thead { display: none; }
+  .fin3-table tbody tr {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 2px 12px;
+    padding: 12px;
+    border-bottom: 1px solid var(--line);
+    background: var(--card);
+    margin-bottom: 8px;
+    border-radius: 12px;
+    border: 1px solid var(--line);
+  }
+  .fin3-table td {
+    border: none;
+    padding: 0;
+    font-size: 13px;
+    display: block;
+  }
+  .fin3-table td:first-child {
+    grid-column: 1 / 2;
+    font-weight: 600;
+    font-size: 14px;
+  }
+  .fin3-table td:last-child {
+    grid-column: 2 / 3;
+    grid-row: 1 / 3;
+    font-size: 16px;
+    font-weight: 700;
+    align-self: center;
+    text-align: right;
+  }
+}
+
+/* Work calendar on mobile */
+@media (max-width: 768px) {
+  .wrk-wrap { padding: 0; width: 100%; overflow-x: hidden; }
+  .wrk-grid { gap: 1px; }
+  .wrk-day  {
+    min-height: 44px;
+    font-size: 11px;
+    padding: 4px 2px;
+  }
+  .wrk-salary-cards {
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  .wrk-salary-card { padding: 12px; }
+  .wrk-salary-value { font-size: 18px; }
+  .wrk-breakdown-table { font-size: 12px; }
+  .wrk-breakdown-table th,
+  .wrk-breakdown-table td { padding: 6px 4px; }
+  .wrk-header {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .wrk-forecast {
+    padding: 16px;
+    border-radius: 14px;
+  }
+  .wrk-forecast-value { font-size: 28px; }
+}
+
+/* Work shift modal — full width on mobile */
+@media (max-width: 600px) {
+  .wrk-modal {
+    width: 100%;
+    max-width: 100%;
+    margin: 0;
+    border-radius: 20px 20px 0 0;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    top: auto;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+  .wrk-modal-overlay {
+    align-items: flex-end;
+  }
+}
+
+/* Reflection Center on mobile */
+@media (max-width: 768px) {
+  .rflx-header {
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 12px 12px 10px;
+    position: sticky;
+    top: 60px; /* below mobile nav bar */
+    z-index: 8;
+  }
+  .rflx-header-left { order: 1; }
+  .rflx-nav {
+    order: 2;
+    overflow-x: auto;
+    scrollbar-width: none;
+    flex-wrap: nowrap;
+    width: 100%;
+    -webkit-overflow-scrolling: touch;
+  }
+  .rflx-nav::-webkit-scrollbar { display: none; }
+  .rflx-nav-btn { flex-shrink: 0; font-size: 11px; padding: 5px 10px; }
+  .rflx-saving { order: 3; }
+  .rflx-main { padding: 16px 12px 80px; }
+  .rflx-two-col { grid-template-columns: 1fr; }
+  .rflx-stat-row { grid-template-columns: 1fr 1fr; gap: 8px; }
+  .rflx-today-grid { grid-template-columns: 1fr; }
+  .rflx-hero-card { flex-direction: column; gap: 12px; padding: 20px; }
+  .rflx-hero-score { font-size: 36px; }
+  .rflx-vault-grid { grid-template-columns: 1fr; }
+  .rflx-stats-grid { grid-template-columns: repeat(3, 1fr); }
+  .rflx-otd-row { flex-direction: column; }
+  .rflx-otd-card { max-width: 100%; }
+}
+@media (max-width: 390px) {
+  .rflx-stat-row { grid-template-columns: 1fr; }
+  .rflx-stats-grid { grid-template-columns: 1fr 1fr; }
+}
+
+/* Habits page */
+@media (max-width: 768px) {
+  .habits-page { padding: 0; overflow-x: hidden; }
+  .habits-header { flex-wrap: wrap; gap: 8px; }
+  .habits-summary { flex-wrap: wrap; gap: 8px; }
+  .habits-heatmap-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+}
+
+/* Health page */
+@media (max-width: 768px) {
+  .hlth-board { padding: 0; overflow-x: hidden; }
+  .hlth-avg-stats { grid-template-columns: repeat(2, 1fr); }
+  .hlth-table th:nth-child(n+4),
+  .hlth-table td:nth-child(n+4) { display: none; }
+}
+
+/* Analytics / review page */
+@media (max-width: 768px) {
+  .wr-page { padding: 0; overflow-x: hidden; }
+  .wr-header { flex-direction: column; align-items: flex-start; gap: 8px; }
+  .wr-stats { grid-template-columns: 1fr 1fr; gap: 8px; }
+  .wr-ring-row { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+}
+
+/* CRM page */
+@media (max-width: 768px) {
+  .crm-board { padding: 0; overflow-x: hidden; }
+  .crm-kanban { overflow-x: auto; -webkit-overflow-scrolling: touch; display: flex; gap: 12px; }
+  .crm-col { min-width: 260px; flex-shrink: 0; }
+}
+
+/* Journal (old jrnl-* classes) */
+@media (max-width: 768px) {
+  .jrnl-layout { flex-direction: column; }
+  .jrnl-sidebar { width: 100%; max-height: 180px; overflow-y: auto; }
+  .jrnl-main { width: 100%; }
+}
+
+/* Generic modals → bottom sheet on small screens */
+@media (max-width: 600px) {
+  .modal-overlay {
+    align-items: flex-end;
+  }
+  .modal-dialog {
+    width: 100%;
+    max-width: 100%;
+    border-radius: 20px 20px 0 0;
+    margin: 0;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+}
+
+/* Touch targets — minimum 44px for all interactive elements */
+@media (max-width: 768px) {
+  button, a, [role="button"], input[type="checkbox"], input[type="radio"] {
+    min-height: 44px;
+  }
+  /* Exception: small decorative elements */
+  .hamburger-line,
+  .rflx-dot,
+  .rflx-insight-dot,
+  .chip-dot,
+  .wrk-holiday-badge {
+    min-height: unset;
+  }
+}
+
+/* Capture box on mobile — full width at bottom */
+@media (max-width: 768px) {
+  .capture-wrap {
+    left: 12px;
+    right: 12px;
+    bottom: 12px;
+    transform: none;
+    width: auto;
+  }
+}
+
+/* ── fin2-page mobile fix ── */
+@media (max-width: 768px) {
+  .fin2-page { padding: 0; width: 100%; overflow-x: hidden; }
 }
