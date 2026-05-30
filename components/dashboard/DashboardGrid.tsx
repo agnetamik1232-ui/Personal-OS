@@ -7,6 +7,7 @@ import { CalendarCard }       from "./CalendarCard";
 import { GoalsCard }          from "./GoalsCard";
 import { InsightsCard }       from "./InsightsCard";
 import { WeeklySnapshotCard } from "./WeeklySnapshotCard";
+import { CheckInCard }        from "@/components/checkin/CheckInCard";
 
 export function DashboardGrid() {
   return (
@@ -17,25 +18,30 @@ export function DashboardGrid() {
         <KpiRow />
       </div>
 
-      {/* ── Row 1: Deep Work + Calendar ── */}
+      {/* ── Row 1: Daily Check-In (full width hero) ── */}
+      <div className="dash-full">
+        <CheckInCard />
+      </div>
+
+      {/* ── Row 2: Deep Work + Calendar ── */}
       <div className="dash-two-col">
         <SessionCard />
         <CalendarCard />
       </div>
 
-      {/* ── Row 2: Habits + Finance ── */}
+      {/* ── Row 3: Habits + Finance ── */}
       <div className="dash-two-col">
         <HabitsCard />
         <FinanceCard />
       </div>
 
-      {/* ── Row 3: Goals + Insights ── */}
+      {/* ── Row 4: Goals + Insights ── */}
       <div className="dash-two-col">
         <GoalsCard />
         <InsightsCard />
       </div>
 
-      {/* ── Row 4: Weekly Snapshot + Nutrition ── */}
+      {/* ── Row 5: Weekly Snapshot + Nutrition ── */}
       <div className="dash-two-col">
         <WeeklySnapshotCard />
         <NutritionCard />
