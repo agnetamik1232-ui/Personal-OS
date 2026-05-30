@@ -8,15 +8,12 @@ function fmt(n: number) {
   return "€" + new Intl.NumberFormat("en-IE", { maximumFractionDigits: 0 }).format(n);
 }
 
+// Pay period = full calendar month (e.g. May 1–31)
+// Payday     = 10th of the FOLLOWING month (e.g. June 10)
 function daysUntilPayday(): number {
-  const now   = new Date();
-  const day   = now.getDate();
-  // Payday = 10th of each month
-  const payday = day <= 10
-    ? new Date(now.getFullYear(), now.getMonth(), 10)
-    : new Date(now.getFullYear(), now.getMonth() + 1, 10);
-  const diff = payday.getTime() - new Date(now.getFullYear(), now.getMonth(), day).getTime();
-  return Math.max(0, Math.round(diff / 86400000));
+  const now    = new Date();
+  const payday = new Date(now.getFullYear(), now.getMonth() + 1, 10);
+  return Math.max(0, Math.round((payday.getTime() - new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime()) / 86400000));
 }
 
 function currentMonthLabel(): string {
@@ -28,28 +25,22 @@ export function SalaryForecastCard() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const now   = new Date();
-    const year  = now.getFullYear();
-    const month = now.getMonth() + 1;
-    void fetch(`/api/work/summary?year=${year}&month=${month}`)
+    const now = new Date();
+    void fetch(`/api/work/summary?year=${now.getFullYear()}&month=${now.getMonth() + 1}`)
       .then(r => r.json() as Promise<{ summary?: WorkSummary }>)
       .then(d => { if (d.summary) setSummary(d.summary); })
-      .catch(() => {/* silent */})
+      .catch(() => {/**/})
       .finally(() => setLoading(false));
   }, []);
 
-  const days = daysUntilPayday();
+  const now         = new Date();
+  const totalDays   = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate(); // days in month
+  const elapsedDays = now.getDate();
+  const days        = daysUntilPayday();
   const hoursWorked = summary?.total_hours ?? 0;
-  const net = summary?.net_salary ?? 0;
-
-  // Rough projection based on days elapsed
-  // Pay period: 11th of prev month → 10th of this month (30-day window)
-  const now        = new Date();
-  const periodStart = new Date(now.getFullYear(), now.getMonth() - (now.getDate() <= 10 ? 1 : 0), 11);
-  const periodEnd   = new Date(now.getFullYear(), now.getMonth() + (now.getDate() <= 10 ? 0 : 1), 10);
-  const periodDays  = Math.round((periodEnd.getTime() - periodStart.getTime()) / 86400000) + 1;
-  const elapsedDays = Math.round((now.getTime() - periodStart.getTime()) / 86400000) + 1;
-  const projNet = elapsedDays > 0 && net > 0 ? Math.round((net / elapsedDays) * periodDays) : net;
+  const net         = summary?.net_salary ?? 0;
+  // Project to end of full calendar month
+  const projNet     = elapsedDays > 0 && net > 0 ? Math.round((net / elapsedDays) * totalDays) : net;
 
   return (
     <Link href="/work" className="card sf-card card-link-wrap">
@@ -81,8 +72,8 @@ export function SalaryForecastCard() {
             <div className="sf-stat-label">Projected net</div>
           </div>
           <div className="sf-stat">
-            <div className="sf-stat-val">{days}</div>
-            <div className="sf-stat-label">Days to payday</div>
+            <div className="sf-stat-val">{elapsedDays}/{totalDays}</div>
+            <div className="sf-stat-label">Days elapsed</div>
           </div>
         </div>
       )}

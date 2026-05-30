@@ -16,12 +16,9 @@ function fmt(n: number) {
 }
 
 function daysUntilPayday(): number {
-  const now = new Date();
-  const day = now.getDate();
-  const payday = day <= 10
-    ? new Date(now.getFullYear(), now.getMonth(), 10)
-    : new Date(now.getFullYear(), now.getMonth() + 1, 10);
-  return Math.max(0, Math.round((payday.getTime() - new Date(now.getFullYear(), now.getMonth(), day).getTime()) / 86400000));
+  const now    = new Date();
+  const payday = new Date(now.getFullYear(), now.getMonth() + 1, 10);
+  return Math.max(0, Math.round((payday.getTime() - new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime()) / 86400000));
 }
 
 function scoreColor(s: number) {
@@ -69,11 +66,9 @@ export function KpiRow() {
     : null;
 
   const now         = new Date();
-  const periodStart = new Date(now.getFullYear(), now.getMonth() - (now.getDate() <= 10 ? 1 : 0), 11);
-  const periodEnd   = new Date(now.getFullYear(), now.getMonth() + (now.getDate() <= 10 ? 0 : 1), 10);
-  const periodDays  = Math.round((periodEnd.getTime() - periodStart.getTime()) / 86400000) + 1;
-  const elapsedDays = Math.max(1, Math.round((now.getTime() - periodStart.getTime()) / 86400000) + 1);
-  const projNet     = work && work.net_salary > 0 ? Math.round((work.net_salary / elapsedDays) * periodDays) : null;
+  const totalDays   = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+  const elapsedDays = now.getDate();
+  const projNet     = work && work.net_salary > 0 ? Math.round((work.net_salary / elapsedDays) * totalDays) : null;
 
   const savings = fin?.monthly_savings ?? 0;
   const days    = daysUntilPayday();
