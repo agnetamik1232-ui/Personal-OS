@@ -5253,3 +5253,1034 @@
   .rflx-hero-score { font-size: 36px; }
   .rflx-page-title { font-size: 20px; }
 }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   MOBILE RESPONSIVENESS — comprehensive overrides
+   Added at end of file to override without breaking desktop styles.
+   Breakpoints:
+     @media (max-width: 1024px)  — tablet
+     @media (max-width: 768px)   — tablet/large mobile
+     @media (max-width: 600px)   — mobile
+     @media (max-width: 390px)   — small mobile
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Global overflow prevention ─────────────────────────────────────────── */
+html,
+body {
+  overflow-x: hidden;
+  max-width: 100vw;
+}
+
+/* ── Mobile nav bar (hamburger) ─────────────────────────────────────────── */
+.mobile-nav-bar {
+  display: none; /* hidden on desktop */
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px;
+  background: var(--ink-hex);
+  position: sticky;
+  top: 0;
+  z-index: 900;
+  gap: 12px;
+}
+
+.mobile-nav-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  color: var(--cream);
+  min-width: 0;
+}
+
+.mobile-nav-brand-mark {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  background: var(--cream);
+  color: var(--ink-hex);
+  display: grid;
+  place-items: center;
+  font-weight: 700;
+  font-size: 13px;
+  flex-shrink: 0;
+}
+
+.mobile-nav-brand-name {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--cream);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mobile-hamburger {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 5px;
+  width: 44px;
+  height: 44px;
+  background: rgba(250,245,236,0.08);
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  padding: 10px;
+  flex-shrink: 0;
+}
+
+.hamburger-line {
+  display: block;
+  width: 100%;
+  height: 2px;
+  background: var(--cream);
+  border-radius: 2px;
+}
+
+/* ── Drawer backdrop ─────────────────────────────────────────────────────── */
+.mobile-drawer-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(28,26,23,0.55);
+  backdrop-filter: blur(3px);
+  z-index: 950;
+  -webkit-backdrop-filter: blur(3px);
+}
+
+/* ── Slide-out drawer ────────────────────────────────────────────────────── */
+.mobile-drawer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: min(320px, 85vw);
+  background: var(--ink-hex);
+  z-index: 960;
+  display: flex;
+  flex-direction: column;
+  transform: translateX(-100%);
+  transition: transform 0.25s ease;
+  box-shadow: 4px 0 32px rgba(28,26,23,0.3);
+  /* Hidden on desktop — toggled by JS */
+}
+
+.mobile-drawer-open {
+  transform: translateX(0);
+}
+
+.mobile-drawer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 20px 14px;
+  border-bottom: 1px solid rgba(250,245,236,0.1);
+  flex-shrink: 0;
+}
+
+.mobile-drawer-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.mobile-drawer-close {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: rgba(250,245,236,0.08);
+  border: none;
+  color: var(--cream);
+  font-size: 22px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+.mobile-drawer-nav {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.mobile-drawer-link {
+  display: flex;
+  align-items: center;
+  padding: 14px 16px;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 500;
+  color: rgba(250,245,236,0.65);
+  text-decoration: none;
+  transition: background 0.15s, color 0.15s;
+  min-height: 52px;
+}
+
+.mobile-drawer-link:hover {
+  background: rgba(250,245,236,0.07);
+  color: var(--cream);
+}
+
+.mobile-drawer-link-active {
+  background: rgba(250,245,236,0.12) !important;
+  color: var(--cream) !important;
+  font-weight: 700;
+}
+
+.mobile-drawer-footer {
+  padding: 16px 20px 24px;
+  border-top: 1px solid rgba(250,245,236,0.1);
+  flex-shrink: 0;
+}
+
+.mobile-drawer-user {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.mobile-drawer-avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--blush), var(--butter));
+  color: var(--ink-hex);
+  display: grid;
+  place-items: center;
+  font-weight: 700;
+  font-size: 13px;
+  flex-shrink: 0;
+}
+
+.mobile-drawer-username {
+  font-size: 14px;
+  font-weight: 500;
+  color: rgba(250,245,236,0.8);
+}
+
+/* ── Show/hide mobile nav at breakpoints ─────────────────────────────────── */
+@media (max-width: 768px) {
+  .mobile-nav-bar {
+    display: flex;
+  }
+  /* Hide desktop top rail on mobile */
+  .rail-wrap {
+    display: none;
+  }
+}
+
+/* ── Shell / page containers ─────────────────────────────────────────────── */
+@media (max-width: 1024px) {
+  .shell-page {
+    padding: 0 16px 28px;
+  }
+  .rail-wrap {
+    padding: 12px 16px 0;
+  }
+}
+
+@media (max-width: 768px) {
+  .shell-page {
+    padding: 0 12px 24px;
+    overflow-x: hidden;
+  }
+  .rail-wrap {
+    display: none;
+  }
+}
+
+@media (max-width: 600px) {
+  .shell-page {
+    padding: 0 10px 20px;
+  }
+}
+
+/* ── Top rail responsive ─────────────────────────────────────────────────── */
+@media (max-width: 1024px) {
+  .rail {
+    grid-template-columns: auto 1fr auto;
+    gap: 8px;
+    padding: 10px 14px 10px 16px;
+  }
+  .rail-tabs {
+    overflow-x: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .rail-tabs::-webkit-scrollbar { display: none; }
+  .rail-search .kbd { display: none; }
+  .rail-search span:not(.kbd) { display: none; }
+  .rail-datetime { display: none; }
+}
+
+@media (max-width: 900px) {
+  .rail-brand-sub { display: none; }
+  .rail-search span { display: none; }
+}
+
+/* ── Hero strip ──────────────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .hero {
+    grid-template-columns: 1fr;
+    margin: 20px 0 14px;
+    gap: 12px;
+  }
+  .hero-h1 {
+    font-size: 32px;
+  }
+  .hero-meta {
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+}
+
+@media (max-width: 600px) {
+  .hero-h1 {
+    font-size: 26px;
+  }
+  .hero-meta {
+    display: none;
+  }
+}
+
+/* ── Dashboard grid ──────────────────────────────────────────────────────── */
+@media (max-width: 1024px) {
+  .dash-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ── Card ────────────────────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .card {
+    padding: 16px;
+    border-radius: 20px;
+  }
+}
+
+@media (max-width: 600px) {
+  .card {
+    padding: 14px;
+    border-radius: 18px;
+  }
+}
+
+/* ── KPI row ─────────────────────────────────────────────────────────────── */
+@media (max-width: 600px) {
+  .kpi-row {
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .kpi-card {
+    padding: 14px 16px;
+  }
+  .kpi-value {
+    font-size: 22px;
+  }
+}
+
+@media (max-width: 390px) {
+  .kpi-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ── Dashboard two-col ───────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .dash-two-col {
+    grid-template-columns: 1fr;
+  }
+  .dash-v2 {
+    gap: 12px;
+  }
+}
+
+/* ── Session card ────────────────────────────────────────────────────────── */
+@media (max-width: 600px) {
+  .session-layout {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  .session-ring-wrap {
+    width: 120px;
+    height: 120px;
+    margin: 0 auto;
+  }
+  .session-focus {
+    font-size: 22px;
+  }
+  .session-actions {
+    flex-wrap: wrap;
+  }
+  .session-btn {
+    font-size: 12px;
+    padding: 8px 12px;
+  }
+}
+
+/* ── Habit tracker ───────────────────────────────────────────────────────── */
+@media (max-width: 600px) {
+  .habit-days {
+    grid-template-columns: minmax(0, 90px) 1fr 28px;
+    gap: 6px;
+  }
+  .habit-row {
+    grid-template-columns: minmax(0, 90px) 1fr 28px;
+    gap: 6px;
+  }
+  .habit-name {
+    font-size: 12px;
+  }
+  .habit-cell {
+    border-radius: 6px;
+  }
+}
+
+/* ── Finance page (fin2) ─────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .fin2-page {
+    padding: 16px 14px 40px;
+  }
+  .fin2-ov-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .fin2-tabs {
+    overflow-x: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    width: 100%;
+    flex-wrap: nowrap;
+  }
+  .fin2-tabs::-webkit-scrollbar { display: none; }
+  .fin2-tab {
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .fin2-pie-wrap {
+    flex-direction: column;
+  }
+  .fin2-tx-actions {
+    opacity: 1;
+  }
+  .fin2-inv-head,
+  .fin2-inv-row {
+    grid-template-columns: 1fr 80px 80px 60px;
+  }
+  .fin2-inv-head > :nth-child(5),
+  .fin2-inv-head > :nth-child(6),
+  .fin2-inv-row  > :nth-child(5),
+  .fin2-inv-row  > :nth-child(6) { display: none; }
+}
+
+@media (max-width: 600px) {
+  .fin2-ov-grid {
+    grid-template-columns: 1fr;
+  }
+  .fin2-ov-value {
+    font-size: 20px;
+  }
+  .fin2-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  .fin2-inv-head,
+  .fin2-inv-row {
+    grid-template-columns: 1fr 80px 60px;
+  }
+  .fin2-inv-head > :nth-child(4),
+  .fin2-inv-head > :nth-child(5),
+  .fin2-inv-head > :nth-child(6),
+  .fin2-inv-row  > :nth-child(4),
+  .fin2-inv-row  > :nth-child(5),
+  .fin2-inv-row  > :nth-child(6) { display: none; }
+}
+
+/* ── Finance v3 (fin3) ───────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .fin3-wrap {
+    height: auto;
+  }
+  .fin3-tabs {
+    overflow-x: auto;
+    scrollbar-width: none;
+    flex-wrap: nowrap;
+  }
+  .fin3-tabs::-webkit-scrollbar { display: none; }
+  .fin3-tab {
+    flex-shrink: 0;
+    padding: 12px 14px;
+  }
+  .fin3-body {
+    padding: 16px;
+    gap: 16px;
+  }
+  .fin3-accounts-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+  .fin3-inv-grid {
+    grid-template-columns: 1fr;
+  }
+  .fin3-search-bar {
+    flex-wrap: wrap;
+  }
+  .fin3-filter-pills {
+    flex-wrap: wrap;
+  }
+  /* Mobile card-style transaction rows */
+  .fin3-tx-actions {
+    opacity: 1;
+  }
+}
+
+@media (max-width: 600px) {
+  .fin3-metric-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .fin3-accounts-grid {
+    grid-template-columns: 1fr;
+  }
+  .fin3-metric-value {
+    font-size: 20px;
+  }
+  .fin3-modal {
+    border-radius: 20px 20px 0 0;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    max-width: 100%;
+    max-height: 90dvh;
+    border-radius: 20px 20px 0 0;
+    padding: 20px;
+  }
+  .fin3-modal-backdrop {
+    align-items: flex-end;
+    padding: 0;
+  }
+}
+
+/* ── Work calendar (wrk-*) ───────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .wrk-wrap {
+    padding: 14px 12px;
+    gap: 14px;
+  }
+  .wrk-header {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .wrk-cal-cell {
+    min-height: 56px;
+    padding: 6px;
+  }
+  .wrk-salary-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+  .wrk-forecast {
+    flex-direction: column;
+    gap: 12px;
+  }
+  .wrk-forecast-group {
+    gap: 16px;
+  }
+}
+
+@media (max-width: 600px) {
+  .wrk-wrap {
+    padding: 10px;
+  }
+  .wrk-cal-cell {
+    min-height: 44px;
+    padding: 4px;
+  }
+  .wrk-date-num {
+    font-size: 11px;
+  }
+  .wrk-shift-label {
+    font-size: 8px;
+  }
+  .wrk-shift-hours {
+    display: none;
+  }
+  .wrk-cal-day-hdr {
+    font-size: 9px;
+    padding: 6px 0;
+  }
+  .wrk-salary-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+  .wrk-salary-value {
+    font-size: 18px;
+  }
+  /* Modal full-screen on mobile */
+  .wrk-modal-backdrop {
+    align-items: flex-end;
+    padding: 0;
+  }
+  .wrk-modal {
+    border-radius: 20px 20px 0 0;
+    max-width: 100%;
+    padding: 20px 16px 32px;
+    max-height: 90dvh;
+  }
+  .wrk-time-row {
+    grid-template-columns: 1fr 1fr;
+  }
+  .wrk-settings-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ── Reflection (rflx-*) ─────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .rflx-today-grid {
+    grid-template-columns: 1fr;
+  }
+  .rflx-hero-card {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 20px;
+  }
+  .rflx-hero-right {
+    margin-left: 0;
+  }
+  .rflx-vault-grid {
+    grid-template-columns: 1fr;
+  }
+  .rflx-otd-row {
+    flex-direction: column;
+  }
+  .rflx-otd-card {
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 600px) {
+  .rflx-stat-row {
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  .rflx-stat-tile {
+    padding: 12px 10px;
+  }
+  .rflx-stat-val {
+    font-size: 18px;
+  }
+  .rflx-two-col {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+  .rflx-main {
+    padding: 16px 12px 60px;
+  }
+  .rflx-header {
+    padding: 12px;
+    gap: 10px;
+  }
+  .rflx-nav {
+    overflow-x: auto;
+    scrollbar-width: none;
+    flex-wrap: nowrap;
+    padding-bottom: 2px;
+  }
+  .rflx-nav::-webkit-scrollbar { display: none; }
+  .rflx-nav-btn {
+    flex-shrink: 0;
+    white-space: nowrap;
+  }
+}
+
+/* ── CRM board ───────────────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .crm-board {
+    height: auto;
+    overflow: visible;
+  }
+  .crm-toolbar {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .crm-toolbar-right {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+  .crm-kanban {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: 10px 0 16px;
+  }
+  .crm-col {
+    min-width: 240px;
+  }
+}
+
+@media (max-width: 600px) {
+  .crm-heading {
+    font-size: 18px;
+  }
+  .crm-tabs {
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .crm-tabs::-webkit-scrollbar { display: none; }
+  .drawer {
+    width: 100vw;
+  }
+}
+
+/* ── Journal layout ──────────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .jrnl-layout {
+    flex-direction: column;
+    height: auto;
+    overflow: visible;
+  }
+  .jrnl-sidebar {
+    width: 100% !important;
+    max-height: 200px;
+    border-right: none;
+    border-bottom: 1px solid rgba(28,26,23,0.08);
+  }
+  .jrnl-main {
+    padding: 20px 16px;
+    max-width: 100%;
+  }
+  .jrnl-top-bar {
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+}
+
+@media (max-width: 600px) {
+  .jrnl-main {
+    padding: 16px 12px;
+  }
+  .jrnl-heading {
+    font-size: 20px;
+  }
+  .jrnl-mood-row {
+    flex-wrap: wrap;
+  }
+}
+
+/* ── Contacts layout ─────────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .contacts-layout {
+    flex-direction: column;
+    height: auto;
+    overflow: visible;
+  }
+  .contacts-list-panel {
+    width: 100%;
+    max-height: 300px;
+    border-right: none;
+    border-bottom: 1px solid rgba(28,26,23,0.08);
+  }
+  .contacts-detail-panel {
+    padding: 20px 16px;
+  }
+}
+
+/* ── Weekly review page ──────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .wr-page {
+    padding: 20px 16px;
+    max-width: 100%;
+  }
+  .wr-header {
+    flex-direction: column;
+    gap: 12px;
+  }
+  .wr-rings {
+    overflow-x: auto;
+    gap: 16px;
+    padding-bottom: 4px;
+    scrollbar-width: none;
+  }
+  .wr-rings::-webkit-scrollbar { display: none; }
+  .wr-day-grid {
+    overflow-x: auto;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+  .wr-day-grid::-webkit-scrollbar { display: none; }
+  .wr-stats-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 600px) {
+  .wr-title {
+    font-size: 22px;
+  }
+  .wr-day {
+    min-width: 44px;
+    padding: 8px 4px;
+  }
+}
+
+/* ── Habits full page ────────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .habits-page {
+    padding: 20px 16px;
+    max-width: 100%;
+  }
+  .habits-page-header {
+    flex-direction: column;
+    gap: 10px;
+    align-items: flex-start;
+  }
+  .habits-summary-row {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .habits-summary-card {
+    flex: 1;
+    min-width: 120px;
+  }
+  .habits-heatmap-section {
+    overflow-x: auto;
+  }
+  .habits-streaks-list .habits-streak-row {
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .habits-streak-name {
+    width: 120px;
+  }
+}
+
+@media (max-width: 600px) {
+  .habits-page {
+    padding: 14px 10px;
+  }
+  .habits-page-range {
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+}
+
+/* ── Health page ─────────────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .hlth-board {
+    padding: 20px 14px 40px;
+    max-width: 100%;
+  }
+  .hlth-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 18px;
+  }
+  .hlth-avg-stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* ── Finance editor page ─────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .fe-layout {
+    padding: 20px 14px 40px;
+    max-width: 100%;
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  .fe-summary {
+    position: static;
+  }
+}
+
+/* ── Modal responsiveness ────────────────────────────────────────────────── */
+@media (max-width: 600px) {
+  .modal-dialog {
+    top: auto;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    transform: none;
+    width: 100%;
+    max-width: 100%;
+    border-radius: 20px 20px 0 0;
+    max-height: 92dvh;
+  }
+}
+
+/* ── Data table mobile card style ────────────────────────────────────────── */
+@media (max-width: 600px) {
+  /* Health table columns - already handled above */
+  /* Wrap tables in a horizontal scroll container */
+  .hlth-table {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+/* ── Global touch target minimum ─────────────────────────────────────────── */
+@media (max-width: 768px) {
+  button,
+  [role="button"],
+  a {
+    min-height: 44px;
+  }
+  .nav-item,
+  .rail-tab,
+  .fin3-tab,
+  .fin2-tab,
+  .wrk-nav-btn,
+  .crm-tab,
+  .rflx-nav-btn,
+  .hlth-range-tab,
+  .habits-range-btn,
+  .wr-nav-btn {
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+  }
+  /* Override for decorative/icon-only elements */
+  .hamburger-line,
+  .op-pulse,
+  .status-dot,
+  .fin3-tx-type-dot {
+    min-height: unset;
+  }
+}
+
+/* ── Reduce hero font sizes on small screens ─────────────────────────────── */
+@media (max-width: 390px) {
+  .kpi-row {
+    grid-template-columns: 1fr;
+  }
+  .shell-page {
+    padding: 0 8px 16px;
+  }
+  .card {
+    padding: 12px;
+    border-radius: 16px;
+  }
+  .hero-h1 {
+    font-size: 22px;
+  }
+  .fin3-body {
+    padding: 10px;
+    gap: 10px;
+  }
+  .wrk-wrap {
+    padding: 8px;
+  }
+  .habits-page,
+  .wr-page,
+  .hlth-board,
+  .fe-layout {
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+}
+
+/* ── Prevent fixed-width containers from overflowing ────────────────────── */
+@media (max-width: 768px) {
+  .fin-cat-row {
+    grid-template-columns: 100px 1fr 80px;
+  }
+  .crm-cat-grid {
+    grid-template-columns: 1fr;
+  }
+  .session-ring-wrap {
+    width: 130px;
+    height: 130px;
+  }
+  .contacts-list-panel {
+    width: 100%;
+  }
+}
+
+/* ── Scrollable tab bars ─────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .fin3-inv-status-tabs,
+  .fin2-tx-toolbar,
+  .hlth-range-tabs {
+    overflow-x: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .fin3-inv-status-tabs::-webkit-scrollbar,
+  .fin2-tx-toolbar::-webkit-scrollbar,
+  .hlth-range-tabs::-webkit-scrollbar { display: none; }
+}
+
+/* ── Weekly snapshot card ─────────────────────────────────────────────────── */
+@media (max-width: 600px) {
+  .wkly-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  .wkly-tile-value {
+    font-size: 20px;
+  }
+}
+
+/* ── Insights card ────────────────────────────────────────────────────────── */
+@media (max-width: 600px) {
+  .ins-row {
+    padding: 10px 12px;
+    font-size: 12px;
+  }
+}
+
+/* ── Operator card ────────────────────────────────────────────────────────── */
+@media (max-width: 600px) {
+  .op-suggests {
+    gap: 4px;
+  }
+  .session-focus {
+    font-size: 20px;
+  }
+}
+
+/* ── Blockers / priorities ────────────────────────────────────────────────── */
+@media (max-width: 600px) {
+  .blocker {
+    grid-template-columns: auto 1fr;
+    gap: 8px;
+  }
+  .blocker-ago {
+    grid-column: 2;
+    margin-top: -4px;
+  }
+}
+
+/* ── Fin sparkline & chart wrappers ─────────────────────────────────────── */
+@media (max-width: 600px) {
+  .fin3-chart-wrap {
+    overflow-x: auto;
+  }
+  .fin-sparkline-wrap {
+    overflow: hidden;
+  }
+}
+
+/* ── Toast positioning on mobile ─────────────────────────────────────────── */
+@media (max-width: 600px) {
+  .fin2-undo-toast,
+  .fin3-toast {
+    bottom: 16px;
+    left: 16px;
+    right: 16px;
+    transform: none;
+    width: auto;
+  }
+  .fin3-fab {
+    bottom: 20px;
+    right: 16px;
+  }
+}

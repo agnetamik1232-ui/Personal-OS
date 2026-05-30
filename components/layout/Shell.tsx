@@ -1,4 +1,5 @@
 import { TopRail }    from "./TopRail";
+import { MobileNav }  from "./MobileNav";
 import { CaptureBox } from "@/components/ui/CaptureBox";
 
 interface ShellProps {
@@ -8,6 +9,7 @@ interface ShellProps {
 export function Shell({ children }: ShellProps) {
   return (
     <div className="shell-bg">
+      <MobileNav />
       <TopRail />
       <div className="shell-page">
         {children}
