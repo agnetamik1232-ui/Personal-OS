@@ -1,11 +1,12 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
-import type { WorkIssue }  from "@/app/api/work/issues/route";
-import type { WorkNote }   from "@/app/api/work/notes/route";
-import type { WorkIdea }   from "@/app/api/work/ideas/route";
-import type { WorkDefect } from "@/app/api/work/defects/route";
+import type { WorkIssue }    from "@/app/api/work/issues/route";
+import type { WorkNote }     from "@/app/api/work/notes/route";
+import type { WorkIdea }     from "@/app/api/work/ideas/route";
+import type { WorkDefect }   from "@/app/api/work/defects/route";
 import type { ChecklistItem } from "@/app/api/work/checklist/route";
+import type { ShiftReport }  from "@/app/api/work/shift-report/route";
 import { WorkCalendar } from "./WorkCalendar";
 
 // ── helpers ──────────────────────────────────────────────────────────────────
@@ -50,10 +51,68 @@ type Tab = "today" | "issues" | "notes" | "ideas" | "defects" | "calendar";
 // ── Main component ───────────────────────────────────────────────────────────
 
 export function WorkHub() {
-  const [tab, setTab] = useState<Tab>("today");
+  const [tab, setTab]           = useState<Tab>("today");
+  const [report, setReport]     = useState<ShiftReport | null>(null);
+  const [reportLoaded, setReportLoaded] = useState(false);
+  const [showEndShift, setShowEndShift] = useState(false);
+
+  useEffect(() => {
+    fetch("/api/work/shift-report")
+      .then(r => r.json())
+      .then((j: { report?: ShiftReport | null }) => { setReport(j.report ?? null); setReportLoaded(true); })
+      .catch(() => setReportLoaded(true));
+  }, []);
+
+  async function startShift() {
+    const r = await fetch("/api/work/shift-report", { method: "POST" });
+    const j = await r.json() as { report?: ShiftReport };
+    if (j.report) setReport(j.report);
+  }
+
+  const isActive = report?.status === "active";
+  const isEnded  = report?.status === "ended";
 
   return (
     <div className="wh-shell">
+      {/* Shift Banner */}
+      {reportLoaded && (
+        <div className={`wh-shift-banner${isActive ? " active" : isEnded ? " ended" : ""}`}>
+          <div className="wh-shift-banner-left">
+            {!report && (
+              <>
+                <span className="wh-shift-dot inactive" />
+                <span className="wh-shift-label">Shift not started</span>
+              </>
+            )}
+            {isActive && (
+              <>
+                <span className="wh-shift-dot active" />
+                <span className="wh-shift-label">Shift in progress</span>
+                <span className="wh-shift-since">since {new Date(report.started_at).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" })}</span>
+              </>
+            )}
+            {isEnded && (
+              <>
+                <span className="wh-shift-dot ended" />
+                <span className="wh-shift-label">Shift ended</span>
+                {report.ended_at && <span className="wh-shift-since">at {new Date(report.ended_at).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" })}</span>}
+              </>
+            )}
+          </div>
+          <div className="wh-shift-banner-right">
+            {!report && (
+              <button className="wh-btn wh-btn-start" onClick={() => void startShift()}>▶ Start Shift</button>
+            )}
+            {isActive && (
+              <button className="wh-btn wh-btn-end" onClick={() => setShowEndShift(true)}>■ End Shift</button>
+            )}
+            {isEnded && (
+              <button className="wh-btn" onClick={() => setShowEndShift(true)}>View Report</button>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <div className="wh-header">
         <div>
@@ -73,13 +132,277 @@ export function WorkHub() {
 
       {/* Panels */}
       <div className="wh-body">
-        {tab === "today"   && <TodayPanel />}
-        {tab === "issues"  && <IssuesPanel />}
-        {tab === "notes"   && <NotesPanel />}
-        {tab === "ideas"   && <IdeasPanel />}
+        {tab === "today"    && <TodayPanel />}
+        {tab === "issues"   && <IssuesPanel />}
+        {tab === "notes"    && <NotesPanel />}
+        {tab === "ideas"    && <IdeasPanel />}
         {tab === "defects"  && <DefectsPanel />}
         {tab === "calendar" && <WorkCalendar />}
       </div>
+
+      {/* End Shift Modal */}
+      {showEndShift && (
+        <EndShiftModal
+          report={report}
+          onClose={() => setShowEndShift(false)}
+          onShiftEnded={(updated) => { setReport(updated); }}
+        />
+      )}
+    </div>
+  );
+}
+
+// ── END SHIFT MODAL ───────────────────────────────────────────────────────────
+
+interface SnapshotData {
+  shift_date:  string;
+  notes:       { content: string; category: string }[];
+  issues:      { title: string; priority: string; status: string; description?: string | null }[];
+  ideas:       { title: string; impact: string; category: string; description?: string | null }[];
+  defects:     { defect_type: string; quantity: number; workstation?: string | null; root_cause?: string | null }[];
+  checklist:   { title: string; done: boolean }[];
+}
+
+function EndShiftModal({ report, onClose, onShiftEnded }: {
+  report:        ShiftReport | null;
+  onClose:       () => void;
+  onShiftEnded:  (r: ShiftReport) => void;
+}) {
+  const [step, setStep]           = useState<"review" | "generating" | "summary">(report?.summary_lt ? "summary" : "review");
+  const [snapshot, setSnapshot]   = useState<SnapshotData | null>(null);
+  const [summaryLt, setSummaryLt] = useState(report?.summary_lt ?? "");
+  const [editing, setEditing]     = useState(false);
+  const [saving, setSaving]       = useState(false);
+  const [copied, setCopied]       = useState(false);
+  const [loadingSnap, setLoadingSnap] = useState(true);
+
+  // Load snapshot data
+  useEffect(() => {
+    async function load() {
+      // If we already have saved summary_data, use it
+      if (report?.summary_data) {
+        setSnapshot(report.summary_data as unknown as SnapshotData);
+        setLoadingSnap(false);
+        return;
+      }
+      // Otherwise fetch live data
+      const today = new Date().toISOString().split("T")[0]!;
+      const [notesR, issuesR, ideasR, defectsR, checkR, checkDoneR] = await Promise.all([
+        fetch("/api/work/notes?days=1").then(r => r.json()) as Promise<{ notes?: { content: string; category: string }[] }>,
+        fetch("/api/work/issues?status=open").then(r => r.json()) as Promise<{ issues?: { title: string; priority: string; status: string; description?: string | null }[] }>,
+        fetch("/api/work/ideas").then(r => r.json()) as Promise<{ ideas?: { title: string; impact: string; category: string; description?: string | null; status: string }[] }>,
+        fetch("/api/work/defects?days=1").then(r => r.json()) as Promise<{ defects?: { defect_type: string; quantity: number; workstation?: string | null; root_cause?: string | null; shift_date: string }[] }>,
+        fetch("/api/work/checklist").then(r => r.json()) as Promise<{ items?: { title: string; done: boolean }[] }>,
+        Promise.resolve(null),
+      ]);
+      void checkDoneR;
+      const snap: SnapshotData = {
+        shift_date: today,
+        notes:    (notesR.notes   ?? []),
+        issues:   (issuesR.issues ?? []),
+        ideas:    (ideasR.ideas   ?? []).filter(i => ["pending","approved","in_progress"].includes(i.status)),
+        defects:  (defectsR.defects ?? []).filter(d => d.shift_date === today),
+        checklist: (checkR.items  ?? []),
+      };
+      setSnapshot(snap);
+      setLoadingSnap(false);
+    }
+    void load();
+  }, [report]);
+
+  async function endShift() {
+    // Mark shift as ended
+    await fetch("/api/work/shift-report", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ status: "ended", ended_at: new Date().toISOString() }),
+    });
+  }
+
+  async function generateSummary() {
+    setStep("generating");
+    if (report?.status === "active") await endShift();
+    const r = await fetch("/api/work/shift-report/generate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ snapshot }),
+    });
+    const j = await r.json() as { summary?: string; error?: string };
+    if (j.summary) {
+      setSummaryLt(j.summary);
+      setStep("summary");
+      // Refresh report state
+      const repR = await fetch("/api/work/shift-report");
+      const repJ = await repR.json() as { report?: ShiftReport };
+      if (repJ.report) onShiftEnded(repJ.report);
+    } else {
+      alert("Generation failed: " + (j.error ?? "unknown error"));
+      setStep("review");
+    }
+  }
+
+  async function saveSummary() {
+    setSaving(true);
+    await fetch("/api/work/shift-report", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ summary_lt: summaryLt }),
+    });
+    setSaving(false);
+    setEditing(false);
+  }
+
+  function copyToClipboard() {
+    void navigator.clipboard.writeText(summaryLt);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  }
+
+  function exportTxt() {
+    const blob = new Blob([summaryLt], { type: "text/plain;charset=utf-8" });
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement("a");
+    a.href     = url;
+    a.download = `pamainos-ataskaita-${snapshot?.shift_date ?? "today"}.txt`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  return (
+    <div className="wh-modal-overlay" onClick={onClose}>
+      <div className="wh-modal" onClick={e => e.stopPropagation()}>
+        <div className="wh-modal-header">
+          <h2 className="wh-modal-title">
+            {step === "review"     ? "End Shift — Review" : ""}
+            {step === "generating" ? "Generating Report…" : ""}
+            {step === "summary"    ? "Shift Report" : ""}
+          </h2>
+          <button className="wh-modal-close" onClick={onClose}>×</button>
+        </div>
+
+        {/* REVIEW STEP */}
+        {step === "review" && (
+          <>
+            {loadingSnap ? (
+              <p className="wh-empty">Collecting shift data…</p>
+            ) : snapshot && (
+              <div className="wh-review-body">
+                <SnapshotSection title="Checklist" count={snapshot.checklist.filter(c => c.done).length + "/" + snapshot.checklist.length}>
+                  {snapshot.checklist.map((c, i) => (
+                    <div key={i} className="wh-review-item">
+                      <span className={`wh-check-mini${c.done ? " done" : ""}`}>{c.done ? "✓" : "○"}</span>
+                      <span>{c.title}</span>
+                    </div>
+                  ))}
+                  {snapshot.checklist.length === 0 && <p className="wh-review-empty">No items</p>}
+                </SnapshotSection>
+
+                <SnapshotSection title="Production Notes" count={String(snapshot.notes.length)}>
+                  {snapshot.notes.map((n, i) => (
+                    <div key={i} className="wh-review-item">
+                      <span className="wh-badge wh-badge-gray">{n.category}</span>
+                      <span className="wh-review-text">{n.content}</span>
+                    </div>
+                  ))}
+                  {snapshot.notes.length === 0 && <p className="wh-review-empty">No notes today</p>}
+                </SnapshotSection>
+
+                <SnapshotSection title="Open Issues" count={String(snapshot.issues.length)}>
+                  {snapshot.issues.map((iss, i) => (
+                    <div key={i} className="wh-review-item">
+                      <span className="wh-priority-dot" style={{ background: priorityColor(iss.priority) }} />
+                      <span className="wh-review-text">{iss.title}</span>
+                      <span className={`wh-badge ${statusBadge(iss.status)}`}>{iss.status.replace("_"," ")}</span>
+                    </div>
+                  ))}
+                  {snapshot.issues.length === 0 && <p className="wh-review-empty">No open issues</p>}
+                </SnapshotSection>
+
+                <SnapshotSection title="Defects" count={String(snapshot.defects.reduce((s, d) => s + d.quantity, 0))}>
+                  {snapshot.defects.map((d, i) => (
+                    <div key={i} className="wh-review-item">
+                      <span className="wh-review-text">{d.defect_type} ×{d.quantity}</span>
+                      {d.workstation && <span className="wh-review-meta">{d.workstation}</span>}
+                    </div>
+                  ))}
+                  {snapshot.defects.length === 0 && <p className="wh-review-empty">No defects logged today</p>}
+                </SnapshotSection>
+
+                <SnapshotSection title="Improvement Ideas" count={String(snapshot.ideas.length)}>
+                  {snapshot.ideas.map((id, i) => (
+                    <div key={i} className="wh-review-item">
+                      <span className={`wh-badge ${impactBadge(id.impact)}`}>{id.impact}</span>
+                      <span className="wh-review-text">{id.title}</span>
+                    </div>
+                  ))}
+                  {snapshot.ideas.length === 0 && <p className="wh-review-empty">No active ideas</p>}
+                </SnapshotSection>
+              </div>
+            )}
+            <div className="wh-modal-footer">
+              <button className="wh-btn" onClick={onClose}>Cancel</button>
+              <button className="wh-btn wh-btn-primary" onClick={() => void generateSummary()} disabled={loadingSnap}>
+                Generate Lithuanian Summary
+              </button>
+            </div>
+          </>
+        )}
+
+        {/* GENERATING STEP */}
+        {step === "generating" && (
+          <div className="wh-generating">
+            <div className="wh-spinner" />
+            <p>Generuojama pamainos ataskaita lietuvių kalba…</p>
+          </div>
+        )}
+
+        {/* SUMMARY STEP */}
+        {step === "summary" && (
+          <>
+            <div className="wh-summary-body">
+              {editing ? (
+                <textarea
+                  className="wh-textarea wh-summary-editor"
+                  value={summaryLt}
+                  onChange={e => setSummaryLt(e.target.value)}
+                  rows={14}
+                />
+              ) : (
+                <div className="wh-summary-text">{summaryLt}</div>
+              )}
+            </div>
+            <div className="wh-modal-footer">
+              <div className="wh-footer-left">
+                <button className="wh-btn" onClick={copyToClipboard}>{copied ? "✓ Copied!" : "Copy"}</button>
+                <button className="wh-btn" onClick={exportTxt}>Export .txt</button>
+                {editing ? (
+                  <button className="wh-btn wh-btn-primary" onClick={() => void saveSummary()} disabled={saving}>
+                    {saving ? "Saving…" : "Save"}
+                  </button>
+                ) : (
+                  <button className="wh-btn" onClick={() => setEditing(true)}>Edit</button>
+                )}
+              </div>
+              <div className="wh-footer-right">
+                <button className="wh-btn" onClick={() => setStep("review")}>← Back</button>
+                <button className="wh-btn" onClick={onClose}>Close</button>
+              </div>
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function SnapshotSection({ title, count, children }: { title: string; count: string; children: React.ReactNode }) {
+  return (
+    <div className="wh-snapshot-section">
+      <div className="wh-snapshot-header">
+        <span className="wh-snapshot-title">{title}</span>
+        <span className="wh-badge wh-badge-gray">{count}</span>
+      </div>
+      <div className="wh-snapshot-body">{children}</div>
     </div>
   );
 }
