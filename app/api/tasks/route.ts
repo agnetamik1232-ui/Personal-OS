@@ -5,14 +5,17 @@ export interface TaskRow {
   id:                string;
   title:             string;
   description:       string | null;
+  notes:             string | null;
   urgency:           string | null;
+  category:          string | null;
+  kanban_status:     string;
   key:               boolean;
   priority_score:    number | null;
   time_estimate_min: number | null;
   tags:              string[];
   due_date:          string | null;
   entity_id:         string | null;
-  entity_name:       string | null;   // joined from entities
+  entity_name:       string | null;
   owner:             string | null;
   completed_at:      string | null;
   created_at:        string;
@@ -20,8 +23,8 @@ export interface TaskRow {
 }
 
 const SELECT_COLS =
-  "id, title, description, urgency, key, priority_score, time_estimate_min, " +
-  "tags, due_date, entity_id, owner, completed_at, created_at, updated_at, " +
+  "id, title, description, notes, urgency, category, kanban_status, key, priority_score, " +
+  "time_estimate_min, tags, due_date, entity_id, owner, completed_at, created_at, updated_at, " +
   "entities(name)";
 
 function ownerUserId(): string {
@@ -30,7 +33,6 @@ function ownerUserId(): string {
   return v;
 }
 
-// Supabase returns { entities: { name: string } | null } — flatten it
 type RawTask = Record<string, unknown> & { entities?: { name: string } | null };
 
 function flatten(raw: RawTask): TaskRow {
@@ -45,10 +47,12 @@ function flatten(raw: RawTask): TaskRow {
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
   const { searchParams } = request.nextUrl;
-  const status  = searchParams.get("status")  ?? "open";
-  const urgency = searchParams.get("urgency") ?? null;
-  const keyOnly = searchParams.get("key")     === "true";
-  const limit   = Math.min(parseInt(searchParams.get("limit") ?? "200", 10), 500);
+  const status   = searchParams.get("status")   ?? "open";
+  const urgency  = searchParams.get("urgency")  ?? null;
+  const category = searchParams.get("category") ?? null;
+  const kanban   = searchParams.get("kanban")   ?? null;
+  const keyOnly  = searchParams.get("key")      === "true";
+  const limit    = Math.min(parseInt(searchParams.get("limit") ?? "200", 10), 500);
 
   try {
     const supabase = await createAdminClient();
@@ -59,17 +63,17 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       .select(SELECT_COLS)
       .eq("user_id", userId)
       .order("priority_score", { ascending: false, nullsFirst: false })
+      .order("due_date",       { ascending: true,  nullsFirst: false })
       .order("created_at",     { ascending: false })
       .limit(limit);
 
-    if (status === "open") {
-      query = query.is("completed_at", null);
-    } else if (status === "done") {
-      query = query.not("completed_at", "is", null);
-    }
+    if (status === "open")  query = query.is("completed_at", null);
+    else if (status === "done") query = query.not("completed_at", "is", null);
 
-    if (urgency) query = query.eq("urgency", urgency);
-    if (keyOnly) query = query.eq("key", true);
+    if (urgency)  query = query.eq("urgency",  urgency);
+    if (category) query = query.eq("category", category);
+    if (kanban)   query = query.eq("kanban_status", kanban);
+    if (keyOnly)  query = query.eq("key", true);
 
     const { data, error } = await query;
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
@@ -102,14 +106,17 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       user_id:           userId,
       title,
       description:       b["description"]      != null ? String(b["description"])      : null,
-      urgency:           b["urgency"]           != null ? String(b["urgency"])           : null,
+      notes:             b["notes"]            != null ? String(b["notes"])            : null,
+      urgency:           b["urgency"]          != null ? String(b["urgency"])          : null,
+      category:          b["category"]         != null ? String(b["category"])         : null,
+      kanban_status:     b["kanban_status"]    != null ? String(b["kanban_status"])    : "inbox",
       key:               Boolean(b["key"]),
-      priority_score:    b["priority_score"]   != null ? Number(b["priority_score"])    : null,
-      time_estimate_min: b["time_estimate_min"] != null ? Number(b["time_estimate_min"]) : null,
+      priority_score:    b["priority_score"]   != null ? Number(b["priority_score"])   : null,
+      time_estimate_min: b["time_estimate_min"] != null ? Number(b["time_estimate_min"]): null,
       tags:              Array.isArray(b["tags"]) ? b["tags"] as string[] : [],
-      due_date:          b["due_date"]          != null ? String(b["due_date"])          : null,
-      entity_id:         b["entity_id"]         != null ? String(b["entity_id"])         : null,
-      owner:             b["owner"]             != null ? String(b["owner"])             : null,
+      due_date:          b["due_date"]         != null ? String(b["due_date"])         : null,
+      entity_id:         b["entity_id"]        != null ? String(b["entity_id"])        : null,
+      owner:             b["owner"]            != null ? String(b["owner"])            : null,
     };
 
     const { data, error } = await supabase

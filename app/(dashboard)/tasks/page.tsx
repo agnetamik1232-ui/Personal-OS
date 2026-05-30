@@ -1,21 +1,7 @@
-import { Panel, PanelHeader } from "@/components/ui/Panel";
-import { EmptySlot } from "@/components/ui/EmptySlot";
+import { TasksPage } from "@/components/tasks/TasksPage";
 
-export const metadata = { title: "Tasks" };
+export const metadata = { title: "Execution Center" };
 
-export default function TasksPage() {
-  return (
-    <div className="space-y-8 animate-fade-in">
-      <div>
-        <p className="metric-label mb-1">Tasks</p>
-        <h1 className="text-3xl font-semibold tracking-tight text-ink-4">
-          Tasks
-        </h1>
-      </div>
-      <Panel>
-        <PanelHeader title="Tasks" subtitle="This section is under construction." />
-        <EmptySlot label="Coming soon" height="h-64" />
-      </Panel>
-    </div>
-  );
+export default function Tasks() {
+  return <TasksPage />;
 }

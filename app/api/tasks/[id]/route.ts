@@ -2,8 +2,8 @@ import { type NextRequest, NextResponse } from "next/server";
 import { createAdminClient }              from "@/lib/supabase/server";
 
 const SELECT_COLS =
-  "id, title, description, urgency, key, priority_score, time_estimate_min, " +
-  "tags, due_date, entity_id, owner, completed_at, created_at, updated_at, " +
+  "id, title, description, notes, urgency, category, kanban_status, key, priority_score, " +
+  "time_estimate_min, tags, due_date, entity_id, owner, completed_at, created_at, updated_at, " +
   "entities(name)";
 
 type RawTask = Record<string, unknown> & { entities?: { name: string } | null };
@@ -41,7 +41,8 @@ export async function PATCH(
   const bool = (k: string) => { if (k in b) patch[k] = Boolean(b[k]); };
   const arr  = (k: string) => { if (k in b) patch[k] = Array.isArray(b[k]) ? b[k] : []; };
 
-  str("title"); str("description"); str("urgency"); str("due_date");
+  str("title"); str("description"); str("notes"); str("urgency");
+  str("category"); str("kanban_status"); str("due_date");
   str("entity_id"); str("owner"); str("completed_at");
   num("priority_score"); num("time_estimate_min");
   bool("key");
