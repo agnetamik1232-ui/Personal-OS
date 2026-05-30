@@ -6,7 +6,6 @@ import { SalaryForecastCard }  from "./SalaryForecastCard";
 import { HealthSnapshotCard }  from "./HealthSnapshotCard";
 import { HabitsCard }          from "./HabitsCard";
 import { GoalsCard }           from "./GoalsCard";
-import { FinanceCard }         from "./FinanceCard";
 import { CalendarCard }        from "./CalendarCard";
 
 export function DashboardGrid() {
@@ -38,9 +37,8 @@ export function DashboardGrid() {
           <GoalsCard />
         </div>
 
-        {/* ── Row 6: Finance + Calendar ── */}
-        <div className="dash-two-col">
-          <FinanceCard />
+        {/* ── Row 6: Calendar ── */}
+        <div className="dash-full">
           <CalendarCard />
         </div>
 
