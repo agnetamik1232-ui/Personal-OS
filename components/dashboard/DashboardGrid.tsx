@@ -5,6 +5,7 @@ import { SalaryForecastCard } from "./SalaryForecastCard";
 import { WorkSnapshot }       from "./WorkSnapshot";
 import { HealthSnapshotCard } from "./HealthSnapshotCard";
 import { CalendarCard }       from "./CalendarCard";
+import { HabitsCard }         from "./HabitsCard";
 import { NutritionCard }      from "./NutritionCard";
 import { CheckInGate }        from "./CheckInGate";
 export function DashboardGrid() {
@@ -34,9 +35,10 @@ export function DashboardGrid() {
           <HealthSnapshotCard />
         </div>
 
-        {/* Calendar + Nutrition */}
-        <div className="dash-two-col">
+        {/* Calendar + Habits + Nutrition */}
+        <div className="dash-three-col">
           <CalendarCard />
+          <HabitsCard />
           <NutritionCard />
         </div>
 
