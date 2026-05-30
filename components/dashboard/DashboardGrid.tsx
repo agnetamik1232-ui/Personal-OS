@@ -1,8 +1,6 @@
 import { KpiRow }              from "./KpiRow";
 import { TodayFocusCard }      from "./TodayFocusCard";
-import { MomentumCard }        from "./MomentumCard";
 import { AttentionCard }       from "./AttentionCard";
-import { BiggestWinCard }      from "./BiggestWinCard";
 import { CheckInCard }         from "@/components/checkin/CheckInCard";
 import { SalaryForecastCard }  from "./SalaryForecastCard";
 import { HealthSnapshotCard }  from "./HealthSnapshotCard";
@@ -21,17 +19,11 @@ export function DashboardGrid() {
           <KpiRow />
         </div>
 
-        {/* ── Command Zone: Focus · Attention+Win · Momentum+CheckIn ── */}
+        {/* ── Command Zone: Focus · Attention · CheckIn ── */}
         <div className="dash-command-zone">
           <TodayFocusCard />
-          <div className="dash-command-mid">
-            <AttentionCard />
-            <BiggestWinCard />
-          </div>
-          <div className="dash-command-right">
-            <MomentumCard />
-            <CheckInCard />
-          </div>
+          <AttentionCard />
+          <CheckInCard />
         </div>
 
         {/* ── Row 4: Salary Forecast + Health Snapshot ── */}
