@@ -50,8 +50,7 @@ export function SalaryForecastCard() {
   const periodEnd   = new Date(now.getFullYear(), now.getMonth() + (now.getDate() <= 10 ? 0 : 1), 10);
   const periodDays  = Math.round((periodEnd.getTime() - periodStart.getTime()) / 86400000) + 1;
   const elapsedDays = Math.round((now.getTime() - periodStart.getTime()) / 86400000) + 1;
-  const projGross = elapsedDays > 0 && gross > 0 ? Math.round((gross / elapsedDays) * periodDays) : gross;
-  const projNet   = elapsedDays > 0 && net > 0   ? Math.round((net   / elapsedDays) * periodDays) : net;
+  const projNet = elapsedDays > 0 && net > 0 ? Math.round((net / elapsedDays) * periodDays) : net;
 
   return (
     <Link href="/work" className="card sf-card card-link-wrap">
