@@ -21,21 +21,17 @@ export function DashboardGrid() {
           <KpiRow />
         </div>
 
-        {/* ── Row 1: Today's Focus + Momentum ── */}
-        <div className="dash-focus-row">
+        {/* ── Command Zone: Focus · Attention+Win · Momentum+CheckIn ── */}
+        <div className="dash-command-zone">
           <TodayFocusCard />
-          <MomentumCard />
-        </div>
-
-        {/* ── Row 2: Attention + Biggest Win ── */}
-        <div className="dash-two-col">
-          <AttentionCard />
-          <BiggestWinCard />
-        </div>
-
-        {/* ── Row 3: Daily Check-In (full width) ── */}
-        <div className="dash-full">
-          <CheckInCard />
+          <div className="dash-command-mid">
+            <AttentionCard />
+            <BiggestWinCard />
+          </div>
+          <div className="dash-command-right">
+            <MomentumCard />
+            <CheckInCard />
+          </div>
         </div>
 
         {/* ── Row 4: Salary Forecast + Health Snapshot ── */}

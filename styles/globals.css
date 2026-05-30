@@ -7510,3 +7510,58 @@ html, body {
 
 /* Remove QA bar bottom offset now that it's gone */
 .dash-v2 { padding-bottom: 20px; }
+
+/* ══════════════════════════════════════
+   COMMAND ZONE — 3-col compact layout
+═══════════════════════════════════════ */
+.dash-command-zone {
+  display: grid;
+  grid-template-columns: 1fr 1fr minmax(0,300px);
+  gap: 14px;
+  align-items: start;
+}
+.dash-command-mid,
+.dash-command-right {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+@media (max-width: 1000px) {
+  .dash-command-zone {
+    grid-template-columns: 1fr 1fr;
+  }
+  .dash-command-right { grid-column: 1 / -1; flex-direction: row; }
+  .dash-command-right > * { flex: 1; }
+}
+@media (max-width: 640px) {
+  .dash-command-zone { grid-template-columns: 1fr; }
+  .dash-command-right { flex-direction: column; }
+}
+
+/* Compact overrides for command zone cards */
+.tf-card  { padding: 14px 16px; }
+.tf-title { font-size: 0.95rem; margin-top: 2px; }
+.tf-items { gap: 7px; }
+.tf-item  { padding: 9px 12px; }
+.tf-item-text { font-size: 0.84rem; }
+
+.at-card   { padding: 14px 16px; }
+.at-list   { gap: 6px; }
+.at-item   { padding: 8px 10px; }
+.at-text   { font-size: 0.82rem; }
+.at-clear  { padding: 10px 0; }
+
+.bw-card   { padding: 14px 16px; }
+.bw-emoji  { font-size: 2rem; }
+.bw-headline { font-size: 0.9rem; }
+.bw-body   { margin-top: 8px; gap: 10px; }
+
+.mm-card     { padding: 14px 16px; }
+.mm-header   { margin-bottom: 12px; }
+.mm-label    { font-size: 0.95rem; }
+.mm-pillars  { gap: 6px; }
+
+/* CheckIn compact override inside command zone */
+.dash-command-right .ci-dash-card { padding: 14px 16px; }
+.dash-command-right .ci-dash-title { font-size: 0.95rem; }
+.dash-command-right .ci-dash-summary { gap: 10px; }
