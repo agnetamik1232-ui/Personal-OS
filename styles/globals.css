@@ -3833,7 +3833,7 @@
    WEEKLY REVIEW (ANALYTICS) PAGE
    ═══════════════════════════════════════════════════════════════ */
 
-.wr-page              { padding: 32px 40px; max-width: 900px; }
+.wr-page              { padding: 32px 40px; max-width: 100%; }
 .wr-header            { display: flex; align-items: flex-start; justify-content: space-between;
                         margin-bottom: 28px; }
 .wr-eyebrow           { font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em;
