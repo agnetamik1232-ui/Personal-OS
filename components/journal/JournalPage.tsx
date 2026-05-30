@@ -310,7 +310,7 @@ export function JournalPage() {
               onClick={() => setView("today")}
               onKeyDown={e => e.key === "Enter" && setView("today")}>
               <div className="rflx-hero-left">
-                <div className="rflx-hero-eyebrow">Today's Reflection</div>
+                <div className="rflx-hero-eyebrow">Today&apos;s Reflection</div>
                 <div className="rflx-hero-title">
                   {todayEntry
                     ? (todayEntry.title ?? fmtDate(today, { weekday: "long", day: "numeric", month: "long" }))
@@ -326,7 +326,7 @@ export function JournalPage() {
                     )}
                   </div>
                 ) : (
-                  <div className="rflx-hero-prompt">"What is one thing that would make today great?"</div>
+                  <div className="rflx-hero-prompt">&ldquo;What is one thing that would make today great?&rdquo;</div>
                 )}
               </div>
               <div className="rflx-hero-right">
@@ -433,7 +433,7 @@ export function JournalPage() {
           <div className="rflx-today">
             <div className="rflx-today-head">
               <div>
-                <div className="rflx-page-eyebrow">Today's Reflection</div>
+                <div className="rflx-page-eyebrow">Today&apos;s Reflection</div>
                 <div className="rflx-page-title">{fmtDate(today)}</div>
               </div>
               <div className="rflx-saving-badge">{saving ? "Saving…" : todayEntry ? "✓ Saved" : ""}</div>
@@ -451,7 +451,7 @@ export function JournalPage() {
                 </div>
 
                 <div className="rflx-card">
-                  <div className="rflx-card-title rflx-card-title-sm">Today's Tags</div>
+                  <div className="rflx-card-title rflx-card-title-sm">Today&apos;s Tags</div>
                   <div className="rflx-tags-grid">
                     {QUICK_TAGS.map(t => (
                       <button key={t.label} type="button"
@@ -564,7 +564,7 @@ export function JournalPage() {
                 <div className="rflx-empty-icon">📖</div>
                 <div className="rflx-empty-title">No entries yet</div>
                 <div className="rflx-empty-sub">Start your first reflection today</div>
-                <button type="button" className="rflx-btn-primary" onClick={() => setView("today")}>Begin Today's Reflection</button>
+                <button type="button" className="rflx-btn-primary" onClick={() => setView("today")}>Begin Today&apos;s Reflection</button>
               </div>
             )}
 
