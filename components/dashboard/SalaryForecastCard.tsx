@@ -40,8 +40,7 @@ export function SalaryForecastCard() {
 
   const days = daysUntilPayday();
   const hoursWorked = summary?.total_hours ?? 0;
-  const gross       = summary?.gross_salary ?? 0;
-  const net         = summary?.net_salary ?? 0;
+  const net = summary?.net_salary ?? 0;
 
   // Rough projection based on days elapsed
   // Pay period: 11th of prev month → 10th of this month (30-day window)
