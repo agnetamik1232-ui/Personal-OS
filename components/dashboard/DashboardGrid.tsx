@@ -1,5 +1,4 @@
 import { KpiRow }              from "./KpiRow";
-import { CaptureCard }         from "./CaptureCard";
 import { TodayFocusCard }      from "./TodayFocusCard";
 import { MomentumCard }        from "./MomentumCard";
 import { AttentionCard }       from "./AttentionCard";
@@ -20,11 +19,6 @@ export function DashboardGrid() {
         {/* ── Row 0: Executive KPIs ── */}
         <div className="dash-full">
           <KpiRow />
-        </div>
-
-        {/* ── Capture ── */}
-        <div className="dash-full">
-          <CaptureCard />
         </div>
 
         {/* ── Row 1: Today's Focus + Momentum ── */}
