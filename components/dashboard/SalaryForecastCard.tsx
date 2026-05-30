@@ -9,9 +9,14 @@ function fmt(n: number) {
 }
 
 function daysUntilPayday(): number {
-  const now = new Date();
-  const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-  return Math.max(0, lastDay.getDate() - now.getDate());
+  const now   = new Date();
+  const day   = now.getDate();
+  // Payday = 10th of each month
+  const payday = day <= 10
+    ? new Date(now.getFullYear(), now.getMonth(), 10)
+    : new Date(now.getFullYear(), now.getMonth() + 1, 10);
+  const diff = payday.getTime() - new Date(now.getFullYear(), now.getMonth(), day).getTime();
+  return Math.max(0, Math.round(diff / 86400000));
 }
 
 function currentMonthLabel(): string {
@@ -39,11 +44,14 @@ export function SalaryForecastCard() {
   const net         = summary?.net_salary ?? 0;
 
   // Rough projection based on days elapsed
-  const now     = new Date();
-  const elapsed = now.getDate();
-  const total   = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
-  const projGross = elapsed > 0 && gross > 0 ? Math.round((gross / elapsed) * total) : gross;
-  const projNet   = elapsed > 0 && net > 0   ? Math.round((net / elapsed) * total)   : net;
+  // Pay period: 11th of prev month → 10th of this month (30-day window)
+  const now        = new Date();
+  const periodStart = new Date(now.getFullYear(), now.getMonth() - (now.getDate() <= 10 ? 1 : 0), 11);
+  const periodEnd   = new Date(now.getFullYear(), now.getMonth() + (now.getDate() <= 10 ? 0 : 1), 10);
+  const periodDays  = Math.round((periodEnd.getTime() - periodStart.getTime()) / 86400000) + 1;
+  const elapsedDays = Math.round((now.getTime() - periodStart.getTime()) / 86400000) + 1;
+  const projGross = elapsedDays > 0 && gross > 0 ? Math.round((gross / elapsedDays) * periodDays) : gross;
+  const projNet   = elapsedDays > 0 && net > 0   ? Math.round((net   / elapsedDays) * periodDays) : net;
 
   return (
     <Link href="/work" className="card sf-card card-link-wrap">
