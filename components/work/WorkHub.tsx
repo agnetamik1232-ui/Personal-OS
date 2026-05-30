@@ -6,6 +6,7 @@ import type { WorkNote }   from "@/app/api/work/notes/route";
 import type { WorkIdea }   from "@/app/api/work/ideas/route";
 import type { WorkDefect } from "@/app/api/work/defects/route";
 import type { ChecklistItem } from "@/app/api/work/checklist/route";
+import { WorkCalendar } from "./WorkCalendar";
 
 // ── helpers ──────────────────────────────────────────────────────────────────
 
@@ -44,7 +45,7 @@ function statusBadge(s: string) {
 
 // ── Tab type ─────────────────────────────────────────────────────────────────
 
-type Tab = "today" | "issues" | "notes" | "ideas" | "defects";
+type Tab = "today" | "issues" | "notes" | "ideas" | "defects" | "calendar";
 
 // ── Main component ───────────────────────────────────────────────────────────
 
@@ -63,7 +64,7 @@ export function WorkHub() {
 
       {/* Tabs */}
       <div className="wh-tabs">
-        {(["today","issues","notes","ideas","defects"] as Tab[]).map(t => (
+        {(["today","issues","notes","ideas","defects","calendar"] as Tab[]).map(t => (
           <button key={t} className={`wh-tab${tab === t ? " active" : ""}`} onClick={() => setTab(t)}>
             {t === "today" ? "Today" : t.charAt(0).toUpperCase() + t.slice(1)}
           </button>
@@ -76,7 +77,8 @@ export function WorkHub() {
         {tab === "issues"  && <IssuesPanel />}
         {tab === "notes"   && <NotesPanel />}
         {tab === "ideas"   && <IdeasPanel />}
-        {tab === "defects" && <DefectsPanel />}
+        {tab === "defects"  && <DefectsPanel />}
+        {tab === "calendar" && <WorkCalendar />}
       </div>
     </div>
   );
