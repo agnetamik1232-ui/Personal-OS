@@ -643,7 +643,7 @@ function CardioPanel() {
   return (
     <div>
       <div className="fit-callout">
-        <strong>Why LISS, not HIIT?</strong> With PCOS, high cortisol from intense exercise can worsen insulin resistance and stall fat loss. LISS keeps cortisol low, directly targets fat stores, and doesn't destroy your knees or your recovery. Walking burns more fat per minute than you think — especially on an incline.
+        <strong>Why LISS, not HIIT?</strong> With PCOS, high cortisol from intense exercise can worsen insulin resistance and stall fat loss. LISS keeps cortisol low, directly targets fat stores, and doesn&apos;t destroy your knees or your recovery. Walking burns more fat per minute than you think — especially on an incline.
       </div>
       <div className="fit-callout fit-callout-green">
         <strong>Daily Step Target: 10,000 steps</strong> — You likely get 6,000–8,000 at work. The extra 2,000–4,000 outside work (a 20–30 min walk) is enough to make a significant difference. Steps are your most powerful daily fat-burning tool.
@@ -840,7 +840,7 @@ function ProgressionPanel() {
       </div>
       <h3 className="fit-section-heading">What to Track Each Session</h3>
       <div className="fit-callout fit-callout-green">
-        You don't need an app — a notes page or your phone is fine. Log: exercise name, weight used, reps completed. When you can do 2+ reps more than the target for 2 sessions in a row, increase weight by the smallest available increment.
+        You don&apos;t need an app — a notes page or your phone is fine. Log: exercise name, weight used, reps completed. When you can do 2+ reps more than the target for 2 sessions in a row, increase weight by the smallest available increment.
       </div>
       <div className="fit-track-grid">
         {[
@@ -858,7 +858,7 @@ function ProgressionPanel() {
         ))}
       </div>
       <div className="fit-callout" style={{ marginTop: 20 }}>
-        <strong>Realistic timeline:</strong> With consistency, expect visible changes by week 6, significant changes by week 12. The scale may move slowly at first — that's normal, especially with PCOS. Trust body measurements and how your clothes fit more than the number on the scale. Hormonal water retention with PCOS can mask fat loss for weeks.
+        <strong>Realistic timeline:</strong> With consistency, expect visible changes by week 6, significant changes by week 12. The scale may move slowly at first — that&apos;s normal, especially with PCOS. Trust body measurements and how your clothes fit more than the number on the scale. Hormonal water retention with PCOS can mask fat loss for weeks.
       </div>
     </div>
   );
