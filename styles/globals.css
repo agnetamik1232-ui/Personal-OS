@@ -8766,3 +8766,86 @@ html, body {
   .hlth-fb-val        { color: #f5f5f5; }
   .hlth-fb-sep        { background: rgba(255,255,255,0.1); }
 }
+
+/* ── Fitness Log Panel ───────────────────────────────────────────────────────── */
+.fl-shell          { display: flex; flex-direction: column; gap: 16px; }
+
+/* suggestions */
+.fl-suggestions    { background: #f0fdf4; border: 1px solid #86efac; border-radius: 10px; padding: 14px 16px; }
+.fl-sug-title      { font-size: 0.82rem; font-weight: 700; color: #14532d; margin-bottom: 10px; }
+.fl-sug-item       { display: grid; grid-template-columns: 1fr auto; gap: 4px 12px; padding: 8px 0; border-top: 1px solid rgba(0,0,0,0.07); }
+.fl-sug-item:first-of-type { border-top: none; }
+.fl-sug-name       { font-size: 0.88rem; font-weight: 600; color: #111; }
+.fl-sug-arrow      { font-size: 0.88rem; color: #16a34a; text-align: right; }
+.fl-sug-reason     { font-size: 0.78rem; color: #555; grid-column: 1 / -1; }
+
+/* form card */
+.fl-form-card      { background: #fff; border: 1px solid rgba(0,0,0,0.09); border-radius: 10px; padding: 16px; }
+.fl-form-title     { font-size: 0.95rem; font-weight: 700; margin-bottom: 12px; }
+.fl-form-row       { display: flex; gap: 10px; margin-bottom: 10px; flex-wrap: wrap; }
+.fl-field          { display: flex; flex-direction: column; gap: 4px; flex: 1; min-width: 140px; }
+.fl-label          { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: #888; }
+.fl-select         { border: 1px solid rgba(0,0,0,0.12); border-radius: 7px; padding: 8px 10px; font-size: 0.88rem; font-family: inherit; outline: none; background: #fff; cursor: pointer; }
+.fl-input          { border: 1px solid rgba(0,0,0,0.12); border-radius: 7px; padding: 8px 12px; font-size: 0.88rem; font-family: inherit; outline: none; background: #fff; }
+.fl-input:focus, .fl-select:focus { border-color: rgba(0,0,0,0.3); }
+.fl-target-hint    { font-size: 0.78rem; color: #888; background: rgba(0,0,0,0.03); border-radius: 6px; padding: 7px 10px; margin-bottom: 10px; line-height: 1.5; }
+.fl-target-hint strong { color: #111; }
+
+/* sets table */
+.fl-sets-header    { display: grid; grid-template-columns: 28px 1fr 1fr 52px 24px; gap: 8px; padding: 0 0 4px; align-items: center; }
+.fl-set-col-label  { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: #bbb; }
+.fl-set-row        { display: grid; grid-template-columns: 28px 1fr 1fr 52px 24px; gap: 8px; align-items: center; margin-bottom: 6px; }
+.fl-set-num        { font-size: 0.8rem; font-weight: 700; color: #888; text-align: center; }
+.fl-set-input      { text-align: center; padding: 7px 6px; }
+.fl-set-diff       { font-size: 0.8rem; font-weight: 700; text-align: center; }
+.fl-del-set        { background: none; border: none; cursor: pointer; color: #ccc; font-size: 1.1rem; padding: 0; line-height: 1; }
+.fl-del-set:hover  { color: #ef4444; }
+.fl-form-actions   { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; gap: 8px; }
+.fl-btn            { padding: 8px 16px; border-radius: 7px; font-size: 0.85rem; font-weight: 600; cursor: pointer; font-family: inherit; border: 1px solid rgba(0,0,0,0.15); background: #fff; transition: background 0.15s; }
+.fl-btn:hover      { background: #f4f4f5; }
+.fl-btn:disabled   { opacity: 0.5; cursor: default; }
+.fl-btn-primary    { background: #111; color: #fff; border-color: #111; }
+.fl-btn-primary:hover { background: #333; }
+.fl-btn-ghost      { color: #555; }
+
+/* today session */
+.fl-today-section, .fl-history-section { }
+.fl-section-title  { font-size: 0.78rem; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: #888; margin-bottom: 10px; }
+.fl-ex-block       { background: #fff; border: 1px solid rgba(0,0,0,0.09); border-radius: 10px; padding: 12px 14px; margin-bottom: 8px; }
+.fl-ex-name        { font-size: 0.9rem; font-weight: 700; margin-bottom: 8px; }
+.fl-ex-sets        { display: flex; flex-direction: column; gap: 4px; }
+.fl-ex-set         { display: flex; align-items: center; gap: 10px; font-size: 0.83rem; padding: 4px 0; border-bottom: 1px solid rgba(0,0,0,0.05); }
+.fl-ex-set:last-child { border-bottom: none; }
+.fl-ex-set-num     { color: #bbb; font-size: 0.75rem; width: 36px; }
+.fl-ex-set-val     { flex: 1; font-weight: 600; }
+.fl-ex-diff        { font-size: 0.75rem; font-weight: 700; }
+.fl-ex-del         { background: none; border: none; cursor: pointer; color: #ccc; font-size: 1rem; padding: 0; opacity: 0; transition: opacity 0.15s; }
+.fl-ex-set:hover .fl-ex-del { opacity: 1; }
+.fl-ex-del:hover   { color: #ef4444; }
+
+/* history */
+.fl-hist-day       { background: #fff; border: 1px solid rgba(0,0,0,0.09); border-radius: 10px; padding: 12px 14px; margin-bottom: 8px; }
+.fl-hist-date      { font-size: 0.85rem; font-weight: 700; margin-bottom: 8px; }
+.fl-hist-day-label { font-weight: 400; color: #888; }
+.fl-hist-exercises { display: flex; flex-direction: column; gap: 4px; }
+.fl-hist-ex        { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; font-size: 0.82rem; padding: 3px 0; border-bottom: 1px solid rgba(0,0,0,0.05); }
+.fl-hist-ex:last-child { border-bottom: none; }
+.fl-hist-ex-name   { font-weight: 600; flex: 1; }
+.fl-hist-ex-detail { color: #888; font-size: 0.75rem; }
+.fl-empty          { color: #bbb; font-size: 0.85rem; text-align: center; padding: 24px; }
+
+@media (max-width: 480px) {
+  .fl-sets-header, .fl-set-row { grid-template-columns: 24px 1fr 1fr 40px 20px; gap: 6px; }
+  .fl-form-row { flex-direction: column; }
+}
+
+@media (prefers-color-scheme: dark) {
+  .fl-form-card, .fl-ex-block, .fl-hist-day { background: #1c1c1e; border-color: rgba(255,255,255,0.08); }
+  .fl-input, .fl-select { background: #2c2c2e; border-color: rgba(255,255,255,0.1); color: #f5f5f5; }
+  .fl-form-title, .fl-ex-name, .fl-hist-date, .fl-hist-ex-name { color: #f5f5f5; }
+  .fl-target-hint { background: rgba(255,255,255,0.05); }
+  .fl-target-hint strong { color: #f5f5f5; }
+  .fl-btn { background: #2c2c2e; border-color: rgba(255,255,255,0.1); color: #ccc; }
+  .fl-btn-primary { background: #f5f5f5; color: #111; border-color: #f5f5f5; }
+  .fl-sug-name { color: #f5f5f5; }
+}

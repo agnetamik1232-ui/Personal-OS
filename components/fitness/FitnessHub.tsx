@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
+import type { FitnessLog, ProgressionSuggestion } from "@/app/api/fitness/logs/route";
 
-type Tab = "plan3" | "plan4" | "cardio" | "nutrition" | "schedule" | "warmup" | "progress";
+type Tab = "plan3" | "plan4" | "cardio" | "nutrition" | "schedule" | "warmup" | "progress" | "log";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -482,6 +483,7 @@ export function FitnessHub() {
   const [tab, setTab] = useState<Tab>("plan3");
 
   const tabs: { id: Tab; label: string }[] = [
+    { id: "log",       label: "📓 Log Workout" },
     { id: "plan3",     label: "3-Day Plan" },
     { id: "plan4",     label: "4-Day Plan" },
     { id: "cardio",    label: "Cardio" },
@@ -520,6 +522,7 @@ export function FitnessHub() {
       </div>
 
       <div className="fit-body">
+        {tab === "log"       && <LogPanel />}
         {tab === "plan3"     && <WorkoutPlan days={PLAN_3} intro="3 days per week — ideal when shift work leaves limited energy. Full recovery between sessions. Each week you train, you build the habit." />}
         {tab === "plan4"     && <WorkoutPlan days={PLAN_4} intro="4 days per week — for when you have consistent energy. Upper/lower split allows more volume per muscle group for faster results." />}
         {tab === "cardio"    && <CardioPanel />}
@@ -527,6 +530,300 @@ export function FitnessHub() {
         {tab === "warmup"    && <WarmupPanel />}
         {tab === "schedule"  && <SchedulePanel />}
         {tab === "progress"  && <ProgressionPanel />}
+      </div>
+    </div>
+  );
+}
+
+// ── Workout Log Panel ─────────────────────────────────────────────────────────
+
+// All exercises keyed by workout day for the quick-pick dropdown
+const EXERCISES_BY_DAY: Record<string, string[]> = {
+  A: ["Hip Thrust","Romanian Deadlift","Leg Press","Lying Leg Curl","Cable Kickback","Plank Hold"],
+  B: ["Seated Cable Row","Lat Pulldown","Incline Dumbbell Press","Dumbbell Lateral Raise","Tricep Pushdown","Dumbbell Bicep Curl"],
+  C: ["Goblet Squat","Single-Arm Dumbbell Row","Dumbbell Romanian Deadlift","Seated Shoulder Press","Dead Bug","Step-Ups"],
+  "1": ["Hip Thrust","Romanian Deadlift","Lying Leg Curl","Cable Pull-Through","Clamshell"],
+  "2": ["Incline Dumbbell Press","Seated Shoulder Press","Cable Lateral Raise","Tricep Overhead Extension","Face Pull"],
+  "3": ["Leg Press","Goblet Squat","Single-Leg Hip Thrust","Seated Leg Extension","Ab Wheel Rollout"],
+  "4": ["Barbell Row","Lat Pulldown","Chest-Supported Row","Hammer Curl","Kettlebell Swing"],
+};
+
+const REPS_TARGET: Record<string, number> = {
+  "Hip Thrust": 10, "Romanian Deadlift": 10, "Leg Press": 12, "Lying Leg Curl": 12,
+  "Cable Kickback": 15, "Seated Cable Row": 10, "Lat Pulldown": 10, "Incline Dumbbell Press": 10,
+  "Dumbbell Lateral Raise": 12, "Tricep Pushdown": 12, "Dumbbell Bicep Curl": 12,
+  "Goblet Squat": 12, "Single-Arm Dumbbell Row": 12, "Dumbbell Romanian Deadlift": 12,
+  "Seated Shoulder Press": 10, "Cable Pull-Through": 15, "Clamshell": 20,
+  "Cable Lateral Raise": 15, "Tricep Overhead Extension": 12, "Face Pull": 15,
+  "Single-Leg Hip Thrust": 12, "Seated Leg Extension": 15, "Ab Wheel Rollout": 10,
+  "Barbell Row": 10, "Chest-Supported Row": 12, "Hammer Curl": 12, "Kettlebell Swing": 15,
+};
+
+interface SetEntry { weight: string; reps: string }
+
+function todayDateKey() { return new Date().toISOString().split("T")[0]!; }
+
+function LogPanel() {
+  const [logs, setLogs]               = useState<FitnessLog[]>([]);
+  const [suggestions, setSuggestions] = useState<ProgressionSuggestion[]>([]);
+  const [loading, setLoading]         = useState(true);
+
+  // Form state
+  const [day, setDay]                 = useState("A");
+  const [exercise, setExercise]       = useState(EXERCISES_BY_DAY["A"]![0]!);
+  const [sets, setSets]               = useState<SetEntry[]>([{ weight: "", reps: "" }, { weight: "", reps: "" }, { weight: "", reps: "" }]);
+  const [saving, setSaving]           = useState(false);
+  const [saved, setSaved]             = useState(false);
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    const r = await fetch("/api/fitness/logs?days=90");
+    const j = await r.json() as { logs?: FitnessLog[]; suggestions?: ProgressionSuggestion[] };
+    setLogs(j.logs ?? []);
+    setSuggestions(j.suggestions ?? []);
+    setLoading(false);
+  }, []);
+
+  useEffect(() => { void load(); }, [load]);
+
+  // When day changes, reset exercise to first in that day
+  function handleDayChange(d: string) {
+    setDay(d);
+    setExercise(EXERCISES_BY_DAY[d]?.[0] ?? "");
+  }
+
+  function updateSet(i: number, field: "weight" | "reps", val: string) {
+    setSets(prev => prev.map((s, idx) => idx === i ? { ...s, [field]: val } : s));
+  }
+
+  function addSet() { setSets(prev => [...prev, { weight: prev[prev.length - 1]?.weight ?? "", reps: "" }]); }
+  function removeSet(i: number) { if (sets.length > 1) setSets(prev => prev.filter((_, idx) => idx !== i)); }
+
+  async function saveSession() {
+    const validSets = sets.filter(s => s.reps.trim() !== "");
+    if (!validSets.length || !exercise) return;
+    setSaving(true);
+    const target = REPS_TARGET[exercise] ?? null;
+    const rows = validSets.map((s, i) => ({
+      log_date:       todayDateKey(),
+      workout_day:    day,
+      exercise_name:  exercise,
+      set_number:     i + 1,
+      weight_kg:      s.weight ? parseFloat(s.weight) : null,
+      reps_completed: parseInt(s.reps),
+      reps_target:    target,
+    }));
+    await fetch("/api/fitness/logs", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(rows) });
+    setSets([{ weight: "", reps: "" }, { weight: "", reps: "" }, { weight: "", reps: "" }]);
+    setSaving(false);
+    setSaved(true);
+    setTimeout(() => setSaved(false), 2000);
+    void load();
+  }
+
+  async function deleteLog(id: string) {
+    await fetch(`/api/fitness/logs?id=${id}`, { method: "DELETE" });
+    setLogs(prev => prev.filter(l => l.id !== id));
+  }
+
+  // Group today's logs by exercise
+  const todayKey = todayDateKey();
+  const todayLogs = logs.filter(l => l.log_date === todayKey);
+  const byExercise = todayLogs.reduce<Record<string, FitnessLog[]>>((acc, l) => {
+    (acc[l.exercise_name] ??= []).push(l);
+    return acc;
+  }, {});
+
+  // Group history by date (excluding today)
+  const history = logs.filter(l => l.log_date !== todayKey);
+  const byDate = history.reduce<Record<string, FitnessLog[]>>((acc, l) => {
+    (acc[l.log_date] ??= []).push(l);
+    return acc;
+  }, {});
+  const historyDates = Object.keys(byDate).sort().reverse().slice(0, 10);
+
+  // Last logged weight for this exercise (for prefill hint)
+  const lastWeight = logs.find(l => l.exercise_name === exercise && l.weight_kg !== null)?.weight_kg;
+
+  return (
+    <div className="fl-shell">
+
+      {/* Progression suggestions */}
+      {suggestions.length > 0 && (
+        <div className="fl-suggestions">
+          <div className="fl-sug-title">🔼 Progressive Overload — Ready to level up</div>
+          {suggestions.map((s, i) => (
+            <div key={i} className="fl-sug-item">
+              <span className="fl-sug-name">{s.exercise_name}</span>
+              <span className="fl-sug-arrow">
+                {s.current_weight !== null ? `${s.current_weight} kg` : "BW"}
+                {" → "}
+                <strong>{s.suggested_weight !== null ? `${s.suggested_weight} kg` : "+2.5 kg"}</strong>
+              </span>
+              <span className="fl-sug-reason">{s.reason}</span>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Log form */}
+      <div className="fl-form-card">
+        <div className="fl-form-title">Log a Set</div>
+
+        {/* Day + Exercise selectors */}
+        <div className="fl-form-row">
+          <div className="fl-field">
+            <label className="fl-label">Workout Day</label>
+            <select className="fl-select" value={day} onChange={e => handleDayChange(e.target.value)}>
+              <optgroup label="3-Day Plan">
+                <option value="A">Day A — Lower Body</option>
+                <option value="B">Day B — Upper Body</option>
+                <option value="C">Day C — Full Body</option>
+              </optgroup>
+              <optgroup label="4-Day Plan">
+                <option value="1">Day 1 — Lower (Posterior)</option>
+                <option value="2">Day 2 — Upper (Push)</option>
+                <option value="3">Day 3 — Lower (Quad/Glute)</option>
+                <option value="4">Day 4 — Upper (Pull)</option>
+              </optgroup>
+            </select>
+          </div>
+          <div className="fl-field" style={{ flex: 2 }}>
+            <label className="fl-label">Exercise</label>
+            <select className="fl-select" value={exercise} onChange={e => setExercise(e.target.value)}>
+              {(EXERCISES_BY_DAY[day] ?? []).map(ex => (
+                <option key={ex} value={ex}>{ex}</option>
+              ))}
+              <option value="__custom">Other (type below)</option>
+            </select>
+          </div>
+        </div>
+        {exercise === "__custom" && (
+          <input className="fl-input" placeholder="Exercise name" onChange={e => setExercise(e.target.value)} />
+        )}
+
+        {/* Target reminder */}
+        {REPS_TARGET[exercise] && (
+          <div className="fl-target-hint">
+            Plan target: <strong>{REPS_TARGET[exercise]} reps</strong>
+            {lastWeight !== null && lastWeight !== undefined && <> · Last logged weight: <strong>{lastWeight} kg</strong></>}
+            {" · "}Hit {(REPS_TARGET[exercise] ?? 0) + 2}+ reps for 2 sessions in a row → increase weight by 2.5 kg
+          </div>
+        )}
+
+        {/* Sets */}
+        <div className="fl-sets-header">
+          <span className="fl-set-col-label">Set</span>
+          <span className="fl-set-col-label">Weight (kg)</span>
+          <span className="fl-set-col-label">Reps done</span>
+          <span className="fl-set-col-label">vs target</span>
+          <span />
+        </div>
+        {sets.map((s, i) => {
+          const repsNum  = parseInt(s.reps) || 0;
+          const target   = REPS_TARGET[exercise];
+          const diff     = target ? repsNum - target : null;
+          const diffLabel = diff !== null && s.reps ? (diff >= 2 ? `+${diff} 🔼` : diff >= 0 ? `+${diff}` : String(diff)) : "—";
+          const diffColor = diff !== null && s.reps ? (diff >= 2 ? "#16a34a" : diff >= 0 ? "#888" : "#ef4444") : "#bbb";
+          return (
+            <div key={i} className="fl-set-row">
+              <span className="fl-set-num">{i + 1}</span>
+              <input
+                className="fl-input fl-set-input"
+                type="number"
+                min={0}
+                step={0.5}
+                placeholder={lastWeight !== null && lastWeight !== undefined ? String(lastWeight) : "kg"}
+                value={s.weight}
+                onChange={e => updateSet(i, "weight", e.target.value)}
+              />
+              <input
+                className="fl-input fl-set-input"
+                type="number"
+                min={1}
+                placeholder={target ? String(target) : "reps"}
+                value={s.reps}
+                onChange={e => updateSet(i, "reps", e.target.value)}
+              />
+              <span className="fl-set-diff" style={{ color: diffColor }}>{diffLabel}</span>
+              <button className="fl-del-set" onClick={() => removeSet(i)} title="Remove set">×</button>
+            </div>
+          );
+        })}
+        <div className="fl-form-actions">
+          <button className="fl-btn fl-btn-ghost" onClick={addSet}>+ Add set</button>
+          <button className="fl-btn fl-btn-primary" onClick={() => void saveSession()} disabled={saving || sets.every(s => !s.reps)}>
+            {saved ? "✓ Saved!" : saving ? "Saving…" : "Save Exercise"}
+          </button>
+        </div>
+      </div>
+
+      {/* Today's session */}
+      {Object.keys(byExercise).length > 0 && (
+        <div className="fl-today-section">
+          <div className="fl-section-title">Today&apos;s Session</div>
+          {Object.entries(byExercise).map(([name, exLogs]) => (
+            <div key={name} className="fl-ex-block">
+              <div className="fl-ex-name">{name}</div>
+              <div className="fl-ex-sets">
+                {exLogs.map(l => {
+                  const target = l.reps_target;
+                  const diff   = target ? l.reps_completed - target : null;
+                  return (
+                    <div key={l.id} className="fl-ex-set">
+                      <span className="fl-ex-set-num">Set {l.set_number}</span>
+                      <span className="fl-ex-set-val">
+                        {l.weight_kg !== null ? `${l.weight_kg} kg` : "BW"} × {l.reps_completed} reps
+                      </span>
+                      {diff !== null && (
+                        <span className="fl-ex-diff" style={{ color: diff >= 2 ? "#16a34a" : diff >= 0 ? "#888" : "#ef4444" }}>
+                          {diff >= 0 ? `+${diff}` : diff} vs target
+                        </span>
+                      )}
+                      <button className="fl-ex-del" onClick={() => void deleteLog(l.id)} title="Delete">×</button>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* History */}
+      <div className="fl-history-section">
+        <div className="fl-section-title">Recent History</div>
+        {loading ? <p className="fl-empty">Loading…</p> : historyDates.length === 0 ? (
+          <p className="fl-empty">No sessions logged yet. Log your first workout above!</p>
+        ) : historyDates.map(date => {
+          const dayLogs  = byDate[date]!;
+          const exNames  = [...new Set(dayLogs.map(l => l.exercise_name))];
+          const wDay     = dayLogs[0]?.workout_day ?? "";
+          return (
+            <div key={date} className="fl-hist-day">
+              <div className="fl-hist-date">
+                {new Date(date + "T12:00:00").toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" })}
+                <span className="fl-hist-day-label"> · Day {wDay}</span>
+              </div>
+              <div className="fl-hist-exercises">
+                {exNames.map(name => {
+                  const exSets = dayLogs.filter(l => l.exercise_name === name);
+                  const maxWeight = exSets.reduce((m, l) => l.weight_kg !== null ? Math.max(m, l.weight_kg) : m, 0);
+                  const totalReps = exSets.reduce((s, l) => s + l.reps_completed, 0);
+                  return (
+                    <div key={name} className="fl-hist-ex">
+                      <span className="fl-hist-ex-name">{name}</span>
+                      <span className="fl-hist-ex-detail">
+                        {exSets.length} sets · {totalReps} total reps
+                        {maxWeight > 0 && ` · max ${maxWeight} kg`}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          );
+        })}
       </div>
     </div>
   );
