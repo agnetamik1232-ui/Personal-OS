@@ -11,12 +11,12 @@ export interface HabitConfig {
 }
 
 export const HABITS: HabitConfig[] = [
-  { id: "read",     name: "Read 30 min",    icon: "📖" },
-  { id: "workout",  name: "Workout",         icon: "🏋️" },
-  { id: "no-phone", name: "No phone < 1h",   icon: "📵" },
-  { id: "journal",  name: "Journal",         icon: "✍️" },
-  { id: "meditate", name: "Meditate 10 min", icon: "🧘" },
-  { id: "sleep",    name: "Sleep by 23:00",  icon: "😴" },
+  { id: "workout",  name: "Gym / Training",   icon: "🏋️" },
+  { id: "steps",    name: "10,000 Steps",     icon: "👟" },
+  { id: "protein",  name: "Protein Goal",     icon: "🥩" },
+  { id: "water",    name: "2L Water",         icon: "💧" },
+  { id: "sleep",    name: "Sleep by 23:00",   icon: "😴" },
+  { id: "journal",  name: "Journal",          icon: "✍️" },
 ];
 
 export const HABIT_IDS = HABITS.map((h) => h.id);

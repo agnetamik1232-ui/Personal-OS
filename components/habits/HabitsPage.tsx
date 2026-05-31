@@ -126,6 +126,9 @@ export function HabitsPage() {
         </div>
       </div>
 
+      {/* Fitness reminder strip */}
+      <FitnessReminder todayDone={todayLog?.done ?? []} />
+
       {/* Summary row */}
       <div className="habits-summary-row">
         <div className="habits-summary-card">
@@ -222,6 +225,57 @@ export function HabitsPage() {
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+// ── Fitness Reminder Strip ────────────────────────────────────────────────────
+
+function getDayWorkout(): string {
+  const day = new Date().getDay(); // 0=Sun, 1=Mon...
+  const plan: Record<number, string> = {
+    1: "Day A — Lower Body (Glutes & Hamstrings)",
+    3: "Day B — Upper Body",
+    5: "Day C — Full Body Metabolic",
+  };
+  return plan[day] ?? "Rest / Active Recovery";
+}
+
+function FitnessReminder({ todayDone }: { todayDone: string[] }) {
+  const workout     = getDayWorkout();
+  const isRestDay   = workout.includes("Rest");
+  const didWorkout  = todayDone.includes("workout");
+  const didSteps    = todayDone.includes("steps");
+  const didProtein  = todayDone.includes("protein");
+  const didWater    = todayDone.includes("water");
+
+  const reminders: { icon: string; text: string; done: boolean }[] = [
+    { icon: "🏋️", text: isRestDay ? "Rest day — gentle walk counts!" : `Today: ${workout}`, done: didWorkout },
+    { icon: "👟", text: "Hit your 10,000 steps", done: didSteps },
+    { icon: "🥩", text: "Reach 155–170g protein today", done: didProtein },
+    { icon: "💧", text: "Drink at least 2L of water", done: didWater },
+  ];
+
+  const allDone = reminders.every(r => r.done);
+
+  return (
+    <div className={`hb-fit-strip${allDone ? " all-done" : ""}`}>
+      <div className="hb-fit-header">
+        <span className="hb-fit-title">Today&apos;s Fitness Checklist</span>
+        {allDone && <span className="hb-fit-badge">🎉 All done!</span>}
+      </div>
+      <div className="hb-fit-items">
+        {reminders.map((r, i) => (
+          <div key={i} className={`hb-fit-item${r.done ? " done" : ""}`}>
+            <span className="hb-fit-icon">{r.icon}</span>
+            <span className="hb-fit-text">{r.text}</span>
+            {r.done && <span className="hb-fit-check">✓</span>}
+          </div>
+        ))}
+      </div>
+      <div className="hb-fit-note">
+        Tick habits above to mark done · <a href="/fitness" className="hb-fit-link">View full plan →</a>
+      </div>
     </div>
   );
 }

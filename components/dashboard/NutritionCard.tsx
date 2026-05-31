@@ -19,10 +19,10 @@ export interface Meal {
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
-const KCAL_GOAL = 2100;
-const P_GOAL    = 140;  // g
-const C_GOAL    = 220;  // g
-const F_GOAL    = 70;   // g
+const KCAL_GOAL = 1675;  // fat-loss target (PCOS plan: 1600–1750)
+const P_GOAL    = 163;   // g — 1.9g/kg × 85kg
+const C_GOAL    = 150;   // g — moderate carb for PCOS insulin sensitivity
+const F_GOAL    = 60;    // g — hormone-supportive fats
 const WATER_GOAL = 8;
 
 const RING_R = 42;

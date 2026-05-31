@@ -182,7 +182,7 @@ export function WeeklyReview() {
             <ScoreRing pct={avgHabitPct}  label="Habits"  color="#2E6B45" />
             <ScoreRing pct={journalPct}   label="Journal" color="#7A6BDE" />
             <ScoreRing
-              pct={avgKcal > 0 ? Math.min(100, (avgKcal / 2100) * 100) : 0}
+              pct={avgKcal > 0 ? Math.min(100, (avgKcal / 1675) * 100) : 0}
               label="Nutrition"
               color="#C99C4A"
             />
