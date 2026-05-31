@@ -16,6 +16,7 @@ import {
   ChevronRight,
   BookOpen,
   Briefcase,
+  Dumbbell,
 } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
 
@@ -64,6 +65,7 @@ export function Sidebar() {
       items: [
         { label: "Habits",     href: "/habits",      icon: Activity },
         { label: "Health",     href: "/health",      icon: Layers },
+        { label: "Fitness",    href: "/fitness",     icon: Dumbbell },
         { label: "Journal",    href: "/journal",     icon: BookOpen },
       ],
     },

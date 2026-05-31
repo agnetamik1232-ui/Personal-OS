@@ -11,6 +11,7 @@ const TABS = [
   { label: "Tasks",    href: "/tasks"     },
   { label: "Habits",   href: "/habits"    },
   { label: "Health",   href: "/health"    },
+  { label: "Fitness",  href: "/fitness"   },
   { label: "Journal",  href: "/journal"   },
   { label: "Work",     href: "/work"      },
   { label: "Finance",  href: "/finance"   },
