@@ -9,7 +9,7 @@ function uid(): string {
 }
 
 const DEFAULT_SETTINGS = {
-  hourly_rate: 7.0, currency: "EUR", tax_rate: 0.36,
+  hourly_rate: 13.22, currency: "EUR", tax_rate: 0.39,
   mult_day: 1.0, mult_night: 1.5, mult_overtime_day: 1.5,
   mult_overtime_night: 2.0, mult_day_off: 2.0, mult_day_off_night: 2.5, mult_holiday: 2.0,
   mult_vacation: 1.0, mult_sick: 0.0, mult_unpaid: 0.0, mult_custom: 1.0,
@@ -31,14 +31,15 @@ export async function GET(): Promise<NextResponse> {
       return NextResponse.json({ settings: created });
     }
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-    // Self-heal: if night_start was accidentally seeded as "18:00", correct it
     const row = data as Record<string, unknown>;
-    if (row["night_start"] === "18:00") {
-      await supabase
-        .from("work_settings")
-        .update({ night_start: "22:00", updated_at: new Date().toISOString() } as never)
-        .eq("user_id", uid());
-      row["night_start"] = "22:00";
+    const fixes: Record<string, unknown> = {};
+    // Self-heal wrong defaults
+    if (row["night_start"] === "18:00") { fixes["night_start"] = "22:00"; row["night_start"] = "22:00"; }
+    if (Number(row["hourly_rate"]) < 10) { fixes["hourly_rate"] = 13.22; row["hourly_rate"] = 13.22; }
+    if (Number(row["tax_rate"]) < 0.38)  { fixes["tax_rate"]    = 0.39;  row["tax_rate"]    = 0.39;  }
+    if (Object.keys(fixes).length > 0) {
+      fixes["updated_at"] = new Date().toISOString();
+      await supabase.from("work_settings").update(fixes as never).eq("user_id", uid());
     }
     return NextResponse.json({ settings: row });
   } catch (e) { return NextResponse.json({ error: String(e) }, { status: 500 }); }

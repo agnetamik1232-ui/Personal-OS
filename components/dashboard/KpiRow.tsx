@@ -16,9 +16,11 @@ function fmt(n: number) {
 }
 
 function daysUntilPayday(): number {
-  const now    = new Date();
-  const payday = new Date(now.getFullYear(), now.getMonth() + 1, 10);
-  return Math.max(0, Math.round((payday.getTime() - new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime()) / 86400000));
+  const now   = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  let payday  = new Date(now.getFullYear(), now.getMonth(), 10);
+  if (today >= payday) payday = new Date(now.getFullYear(), now.getMonth() + 1, 10);
+  return Math.max(0, Math.round((payday.getTime() - today.getTime()) / 86400000));
 }
 
 function scoreColor(s: number) {

@@ -11,9 +11,12 @@ function fmt(n: number) {
 // Pay period = full calendar month (e.g. May 1–31)
 // Payday     = 10th of the FOLLOWING month (e.g. June 10)
 function daysUntilPayday(): number {
-  const now    = new Date();
-  const payday = new Date(now.getFullYear(), now.getMonth() + 1, 10);
-  return Math.max(0, Math.round((payday.getTime() - new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime()) / 86400000));
+  const now   = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  // Payday = 10th of current month if not yet passed, else 10th of next month
+  let payday  = new Date(now.getFullYear(), now.getMonth(), 10);
+  if (today >= payday) payday = new Date(now.getFullYear(), now.getMonth() + 1, 10);
+  return Math.max(0, Math.round((payday.getTime() - today.getTime()) / 86400000));
 }
 
 function currentMonthLabel(): string {
