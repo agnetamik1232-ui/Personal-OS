@@ -62,15 +62,12 @@ export function SalaryForecastCard() {
   const month         = now.getMonth();
   const todayStr      = now.toISOString().split("T")[0]!;
   const days          = daysUntilPayday();
-  const net           = summary?.net_salary ?? 0;
-  const hoursWorked   = summary?.total_hours ?? 0;
-  const daysWorked    = summary?.days_worked ?? 0;
+  const net           = summary?.net_salary   ?? 0;   // actual net from logged shifts
+  const gross         = summary?.gross_salary ?? 0;   // actual gross from logged shifts
+  const tax           = summary?.tax_amount   ?? 0;   // actual tax deducted
+  const hoursWorked   = summary?.total_hours  ?? 0;
+  const daysWorked    = summary?.days_worked  ?? 0;
   const expectedDays  = expectedWorkingDays(year, month);
-  // Project based on shifts worked, not calendar days
-  // e.g. earned €1,742 across 18 shifts, 22 expected → (1742/18) × 22 = €2,129
-  const projNet       = daysWorked > 0 && net > 0
-    ? Math.round((net / daysWorked) * expectedDays)
-    : net;
   const progressPct   = Math.min(100, Math.round((daysWorked / expectedDays) * 100));
 
   // Build shift lookup map
@@ -95,23 +92,23 @@ export function SalaryForecastCard() {
         </div>
       </div>
 
-      {/* Key stats */}
+      {/* Key stats — all from logged shifts, no guessing */}
       <div className="sf-grid">
         <div className="sf-stat">
           <div className="sf-stat-val">{hoursWorked.toFixed(1)}h</div>
-          <div className="sf-stat-label">Hours</div>
+          <div className="sf-stat-label">Hours worked</div>
+        </div>
+        <div className="sf-stat">
+          <div className="sf-stat-val">{fmt(gross)}</div>
+          <div className="sf-stat-label">Gross earned</div>
+        </div>
+        <div className="sf-stat">
+          <div className="sf-stat-val" style={{ color: "#ef4444" }}>−{fmt(tax)}</div>
+          <div className="sf-stat-label">Tax (39%)</div>
         </div>
         <div className="sf-stat">
           <div className="sf-stat-val sf-stat-green">{fmt(net)}</div>
-          <div className="sf-stat-label">Net so far</div>
-        </div>
-        <div className="sf-stat">
-          <div className="sf-stat-val sf-stat-green">{fmt(projNet)}</div>
-          <div className="sf-stat-label">Projected</div>
-        </div>
-        <div className="sf-stat">
-          <div className="sf-stat-val">{daysWorked}/{expectedDays}</div>
-          <div className="sf-stat-label">Shifts logged</div>
+          <div className="sf-stat-label">Net pay</div>
         </div>
       </div>
 

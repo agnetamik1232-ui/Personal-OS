@@ -68,20 +68,9 @@ export function KpiRow() {
     : null;
 
   const now         = new Date();
-  const year        = now.getFullYear();
-  const month       = now.getMonth();
-  // Expected working days Mon–Fri
-  const expectedDays = (() => {
-    const dim = new Date(year, month + 1, 0).getDate();
-    let c = 0;
-    for (let d = 1; d <= dim; d++) { const dow = new Date(year, month, d).getDay(); if (dow !== 0 && dow !== 6) c++; }
-    return c;
-  })();
-  const daysWorked  = work?.days_worked ?? 0;
-  // Project using shifts worked, not calendar days elapsed
-  const projNet     = work && work.net_salary > 0 && daysWorked > 0
-    ? Math.round((work.net_salary / daysWorked) * expectedDays)
-    : null;
+  void now; // used below
+  // Net pay is taken directly from logged shifts — no projection
+  const netPay      = work?.net_salary ?? null;
 
   const savings = fin?.monthly_savings ?? 0;
   const days    = daysUntilPayday();
@@ -100,9 +89,9 @@ export function KpiRow() {
       </Link>
 
       <Link href="/work" className="kpi2-card kpi2-link">
-        <div className="kpi2-eyebrow">Salary Forecast</div>
+        <div className="kpi2-eyebrow">Net Pay (this month)</div>
         {loading ? <div className="kpi2-skeleton" /> : <>
-          <div className="kpi2-value kpi2-green">{projNet ? fmt(projNet) : work ? fmt(work.net_salary) : "—"}</div>
+          <div className="kpi2-value kpi2-green">{netPay !== null ? fmt(netPay) : "—"}</div>
           <div className="kpi2-trend kpi2-neutral">
             {days === 0 ? "Payday today 🎉" : `${days} days to payday`}
           </div>
