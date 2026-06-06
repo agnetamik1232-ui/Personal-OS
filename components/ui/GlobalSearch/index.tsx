@@ -66,18 +66,7 @@ export function GlobalSearch() {
     if (e.key === "Enter" && results[selected]) navigate(results[selected]!.href);
   }
 
-  if (!open) {
-    return (
-      <button className="gs-trigger" onClick={() => setOpen(true)} title="Search (⌘K)">
-        <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
-          <circle cx="6.5" cy="6.5" r="4.5" stroke="currentColor" strokeWidth="1.5"/>
-          <path d="M10.5 10.5L13 13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-        </svg>
-        <span>Search</span>
-        <kbd>⌘K</kbd>
-      </button>
-    );
-  }
+  if (!open) return null;
 
   return (
     <div className="gs-overlay" onClick={() => setOpen(false)}>

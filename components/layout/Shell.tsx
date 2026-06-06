@@ -1,7 +1,6 @@
 import { Sidebar }      from "./Sidebar";
 import { MobileNav }    from "./MobileNav";
 import { CaptureBox }   from "@/components/ui/CaptureBox";
-import { GlobalSearch } from "@/components/ui/GlobalSearch";
 
 interface ShellProps {
   children: React.ReactNode;
@@ -23,9 +22,6 @@ export function Shell({ children }: ShellProps) {
           {children}
         </main>
       </div>
-
-      {/* Global search — renders trigger + modal, available everywhere */}
-      <GlobalSearch />
 
       <CaptureBox />
     </div>

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
 import { NotificationBell } from "@/components/ui/Notifications";
+import { GlobalSearch }     from "@/components/ui/GlobalSearch";
 import {
   LayoutDashboard,
   CheckSquare,
@@ -111,6 +112,7 @@ export function Sidebar() {
   }
 
   return (
+    <>
     <aside className="flex flex-col h-full" style={{ minHeight: "100dvh" }}>
 
       {/* Logo */}
@@ -188,5 +190,9 @@ export function Sidebar() {
       </div>
 
     </aside>
+
+    {/* Search modal — mounted outside aside so it can cover full screen */}
+    <GlobalSearch />
+  </>
   );
 }
