@@ -48,18 +48,27 @@ export function SalaryForecastCard() {
   const [summary, setSummary] = useState<WorkSummary | null>(null);
   const [loading, setLoading] = useState(true);
 
+  // Before the 10th → show last month (about to be paid)
+  // On/after the 10th → show this month (accumulating)
+  const now              = new Date();
+  const beforePayday     = now.getDate() < 10;
+  const displayYear      = beforePayday && now.getMonth() === 0
+    ? now.getFullYear() - 1
+    : now.getFullYear();
+  const displayMonth     = beforePayday
+    ? (now.getMonth() === 0 ? 12 : now.getMonth())   // prev month (1-based)
+    : now.getMonth() + 1;                             // current month (1-based)
+
   useEffect(() => {
-    const now = new Date();
-    void fetch(`/api/work/summary?year=${now.getFullYear()}&month=${now.getMonth() + 1}`)
+    void fetch(`/api/work/summary?year=${displayYear}&month=${displayMonth}`)
       .then(r => r.json() as Promise<{ summary?: WorkSummary }>)
       .then(d => { if (d.summary) setSummary(d.summary); })
       .catch(() => {/**/})
       .finally(() => setLoading(false));
-  }, []);
+  }, [displayYear, displayMonth]);
 
-  const now           = new Date();
-  const year          = now.getFullYear();
-  const month         = now.getMonth();
+  const year          = displayYear;
+  const month         = displayMonth - 1; // back to 0-based for Date
   const todayStr      = now.toISOString().split("T")[0]!;
   const days          = daysUntilPayday();
   const net           = summary?.net_salary   ?? 0;   // actual net from logged shifts
@@ -83,7 +92,8 @@ export function SalaryForecastCard() {
         <div>
           <div className="card-eyebrow">💼 Salary Forecast</div>
           <div className="sf-month">
-            {new Intl.DateTimeFormat("en-GB", { month: "long", year: "numeric" }).format(now)}
+            {new Intl.DateTimeFormat("en-GB", { month: "long", year: "numeric" }).format(new Date(year, month))}
+            {beforePayday && <span className="sf-pay-context"> · due {now.getDate() < 10 ? `${10 - now.getDate()}d` : "today"}</span>}
           </div>
         </div>
         <div className="sf-payday">

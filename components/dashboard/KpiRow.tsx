@@ -43,7 +43,13 @@ export function KpiRow() {
 
     void Promise.all([
       fetch("/api/finance/summary").then(r => r.json() as Promise<{ summary?: FinSummary }>).catch(() => ({})),
-      fetch(`/api/work/summary?year=${now.getFullYear()}&month=${now.getMonth() + 1}`).then(r => r.json() as Promise<{ summary?: WorkSummary }>).catch(() => ({})),
+      (() => {
+        // Before the 10th → fetch last month (about to be paid); after → this month
+        const beforePayday = now.getDate() < 10;
+        const y = beforePayday && now.getMonth() === 0 ? now.getFullYear() - 1 : now.getFullYear();
+        const m = beforePayday ? (now.getMonth() === 0 ? 12 : now.getMonth()) : now.getMonth() + 1;
+        return fetch(`/api/work/summary?year=${y}&month=${m}`).then(r => r.json() as Promise<{ summary?: WorkSummary }>).catch(() => ({}));
+      })(),
       fetch("/api/checkin/stats").then(r => r.json() as Promise<{ stats?: CheckinStats }>).catch(() => ({})),
       fetch("/api/tasks?status=open&limit=200").then(r => r.json() as Promise<{ tasks?: { due_date?: string | null; key?: boolean }[] }>).catch(() => ({})),
     ]).then(([f, w, h, t]) => {

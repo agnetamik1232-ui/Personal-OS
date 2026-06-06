@@ -9548,3 +9548,5 @@ aside p.text-2xs { color: #9AA3CC !important; }
 /* ── Recurring bill paid button ──────────────────────────────────────────────── */
 .fin3-paid-btn { padding: 4px 10px; border: 1px solid #86EFAC; border-radius: 20px; background: #F0FDF4; color: #16a34a; font-size: 0.75rem; font-weight: 700; cursor: pointer; font-family: inherit; transition: all 0.15s; white-space: nowrap; }
 .fin3-paid-btn:hover { background: #22c55e; color: #fff; border-color: #22c55e; }
+
+.sf-pay-context { font-size: 0.72rem; color: #9AA3CC; font-weight: 400; }

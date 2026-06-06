@@ -72,7 +72,12 @@ export function ExecutiveBrief() {
 
     void Promise.all([
       fetch("/api/tasks?status=open&limit=300").then(r => r.json() as Promise<{ tasks?: { due_date?: string | null; completed_at?: string | null }[] }>).catch(() => ({})),
-      fetch(`/api/work/summary?year=${now.getFullYear()}&month=${now.getMonth() + 1}`).then(r => r.json() as Promise<{ summary?: WorkSummary }>).catch(() => ({})),
+      (() => {
+        const beforePayday = now.getDate() < 10;
+        const y = beforePayday && now.getMonth() === 0 ? now.getFullYear() - 1 : now.getFullYear();
+        const m = beforePayday ? (now.getMonth() === 0 ? 12 : now.getMonth()) : now.getMonth() + 1;
+        return fetch(`/api/work/summary?year=${y}&month=${m}`).then(r => r.json() as Promise<{ summary?: WorkSummary }>).catch(() => ({}));
+      })(),
       fetch("/api/checkin/stats").then(r => r.json() as Promise<{ stats?: CheckinStats }>).catch(() => ({})),
       fetch(`/api/checkin?date=${today}`).then(r => r.json() as Promise<{ checkin?: { mood?: number | null; sleep_hours?: number | null } | null }>).catch(() => ({})),
       fetch("/api/finance/summary").then(r => r.json() as Promise<{ summary?: FinSummary }>).catch(() => ({})),
