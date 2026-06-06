@@ -204,6 +204,23 @@ export function FinanceDashboard() {
     await loadAll();
   }
 
+  async function markPaid(r: FinRecurring) {
+    // Advance next_date by one period
+    const current = new Date(r.next_date + "T12:00:00");
+    const next = new Date(current);
+    if (r.frequency === "weekly")       next.setDate(next.getDate() + 7);
+    else if (r.frequency === "monthly") next.setMonth(next.getMonth() + 1);
+    else if (r.frequency === "yearly")  next.setFullYear(next.getFullYear() + 1);
+    else if (r.frequency === "daily")   next.setDate(next.getDate() + 1);
+    else                                next.setMonth(next.getMonth() + 1); // default monthly
+    const nextStr = next.toISOString().split("T")[0]!;
+    await fetch(`/api/finance/recurring?id=${r.id}`, {
+      method: "PATCH", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ next_date: nextStr }),
+    });
+    await loadAll();
+  }
+
   // ── Derived ──────────────────────────────────────────────────────────────────
 
   const filteredTx = transactions.filter((t) => {
@@ -276,6 +293,7 @@ export function FinanceDashboard() {
             onEdit={(r) => { setEditingRecurring(r); setShowRecurringModal(true); }}
             onDelete={(r) => setDeleteConfirm({ type: "recurring", id: r.id, label: r.name })}
             onToggle={(r) => { void toggleRecurring(r); }}
+            onMarkPaid={(r) => { void markPaid(r); }}
           />
         )}
         {tab === "analytics" && <AnalyticsTab transactions={transactions} cur={cur} />}
@@ -702,9 +720,10 @@ function BudgetsTab({ budgets, cur, onAdd, onEdit, onDelete }: {
 
 // ── Recurring tab ────────────────────────────────────────────────────────────
 
-function RecurringTab({ recurring, cur, onAdd, onEdit, onDelete, onToggle }: {
+function RecurringTab({ recurring, cur, onAdd, onEdit, onDelete, onToggle, onMarkPaid }: {
   recurring: FinRecurring[]; cur: string;
-  onAdd: () => void; onEdit: (r: FinRecurring) => void; onDelete: (r: FinRecurring) => void; onToggle: (r: FinRecurring) => void;
+  onAdd: () => void; onEdit: (r: FinRecurring) => void; onDelete: (r: FinRecurring) => void;
+  onToggle: (r: FinRecurring) => void; onMarkPaid: (r: FinRecurring) => void;
 }) {
   const dueSoon = recurring.filter((r) => (r.days_until ?? 0) <= 7);
   const thisMonth = recurring.filter((r) => (r.days_until ?? 0) > 7 && (r.days_until ?? 0) <= 30);
@@ -728,6 +747,13 @@ function RecurringTab({ recurring, cur, onAdd, onEdit, onDelete, onToggle }: {
             <span style={{ fontWeight: 700, color: r.type === "income" ? "#16a34a" : "#dc2626" }}>
               {r.type === "income" ? "+" : "-"}{fmt(r.amount, cur)}
             </span>
+            <button
+              className="fin3-paid-btn"
+              onClick={() => onMarkPaid(r)}
+              title="Mark as paid — advances to next due date"
+            >
+              ✓ Paid
+            </button>
             <div className="fin3-tx-actions" style={{ opacity: 1 }}>
               <button className="fin3-tx-action-btn" onClick={() => onEdit(r)}><Pencil size={14} /></button>
               <button className="fin3-tx-action-btn" onClick={() => onDelete(r)}><Trash2 size={14} /></button>
