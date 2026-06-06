@@ -8,10 +8,16 @@ import { CalendarCard }       from "./CalendarCard";
 import { HabitsCard }         from "./HabitsCard";
 import { NutritionCard }      from "./NutritionCard";
 import { CheckInGate }        from "./CheckInGate";
+import { TodaySummaryBar }    from "./TodaySummaryBar";
 export function DashboardGrid() {
   return (
     <>
       <div className="dash-v3">
+
+        {/* Today summary bar */}
+        <div className="dash-full">
+          <TodaySummaryBar />
+        </div>
 
         {/* KPI strip */}
         <div className="dash-full">

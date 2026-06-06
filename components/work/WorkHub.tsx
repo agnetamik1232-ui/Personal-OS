@@ -46,7 +46,7 @@ function statusBadge(s: string) {
 
 // ── Tab type ─────────────────────────────────────────────────────────────────
 
-type Tab = "today" | "issues" | "notes" | "ideas" | "defects" | "calendar";
+type Tab = "today" | "issues" | "notes" | "ideas" | "defects" | "reports" | "calendar";
 
 // ── Main component ───────────────────────────────────────────────────────────
 
@@ -123,7 +123,7 @@ export function WorkHub() {
 
       {/* Tabs */}
       <div className="wh-tabs">
-        {(["today","issues","notes","ideas","defects","calendar"] as Tab[]).map(t => (
+        {(["today","issues","notes","ideas","defects","reports","calendar"] as Tab[]).map(t => (
           <button key={t} className={`wh-tab${tab === t ? " active" : ""}`} onClick={() => setTab(t)}>
             {t === "today" ? "Today" : t.charAt(0).toUpperCase() + t.slice(1)}
           </button>
@@ -137,6 +137,7 @@ export function WorkHub() {
         {tab === "notes"    && <NotesPanel />}
         {tab === "ideas"    && <IdeasPanel />}
         {tab === "defects"  && <DefectsPanel />}
+        {tab === "reports"  && <ShiftReportsPanel />}
         {tab === "calendar" && <WorkCalendar />}
       </div>
 
@@ -968,6 +969,82 @@ function DefectForm({ onSave, onCancel }: { onSave: () => void; onCancel: () => 
         </button>
         <button className="wh-btn" onClick={onCancel}>Cancel</button>
       </div>
+    </div>
+  );
+}
+
+// ── SHIFT REPORTS PANEL ───────────────────────────────────────────────────────
+
+interface ShiftReportRecord {
+  id: string; shift_date: string; started_at: string; ended_at: string | null;
+  status: string; summary_lt: string | null; summary_data: Record<string, unknown> | null;
+}
+
+function ShiftReportsPanel() {
+  const [reports, setReports] = useState<ShiftReportRecord[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [selected, setSelected] = useState<ShiftReportRecord | null>(null);
+  const [copied, setCopied] = useState(false);
+
+  useEffect(() => {
+    // Fetch last 30 days of shift reports via supabase directly through our API
+    fetch("/api/work/shift-report/history")
+      .then(r => r.json())
+      .then((j: { reports?: ShiftReportRecord[] }) => { setReports(j.reports ?? []); setLoading(false); })
+      .catch(() => setLoading(false));
+  }, []);
+
+  function copy(text: string) {
+    void navigator.clipboard.writeText(text);
+    setCopied(true); setTimeout(() => setCopied(false), 2000);
+  }
+
+  return (
+    <div>
+      <div className="wh-panel-header">
+        <span className="wh-panel-title">Shift Reports History</span>
+        <span className="wh-panel-sub">Lithuanian summaries saved per shift</span>
+      </div>
+      {loading ? <p className="wh-empty">Loading…</p> : reports.length === 0 ? (
+        <p className="wh-empty">No shift reports yet. End a shift to generate your first report.</p>
+      ) : (
+        <div className="sr-layout">
+          <div className="sr-list">
+            {reports.map(r => (
+              <button key={r.id} className={`sr-item${selected?.id === r.id ? " active" : ""}`} onClick={() => setSelected(r)}>
+                <div className="sr-item-date">
+                  {new Date(r.shift_date + "T12:00:00").toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" })}
+                </div>
+                <div className="sr-item-meta">
+                  {r.ended_at ? `${new Date(r.started_at).toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit"})} → ${new Date(r.ended_at).toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit"})}` : "Active"}
+                </div>
+                <span className={`wh-badge ${r.status === "ended" ? "wh-badge-green" : "wh-badge-yellow"}`}>{r.status}</span>
+              </button>
+            ))}
+          </div>
+          <div className="sr-detail">
+            {!selected ? (
+              <p className="wh-empty">Select a shift to view the report</p>
+            ) : (
+              <>
+                <div className="sr-detail-header">
+                  <span className="sr-detail-date">
+                    {new Date(selected.shift_date + "T12:00:00").toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long" })}
+                  </span>
+                  {selected.summary_lt && (
+                    <button className="wh-btn" onClick={() => copy(selected.summary_lt!)}>{copied ? "✓ Copied!" : "Copy"}</button>
+                  )}
+                </div>
+                {selected.summary_lt ? (
+                  <div className="sr-summary">{selected.summary_lt}</div>
+                ) : (
+                  <p className="wh-empty">No summary generated for this shift.</p>
+                )}
+              </>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

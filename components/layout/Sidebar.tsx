@@ -128,6 +128,18 @@ export function Sidebar() {
         </div>
       </div>
 
+      {/* Search trigger */}
+      <div style={{ padding: "0 12px 8px" }}>
+        <button className="sidebar-search-btn" onClick={() => {
+          const e = new KeyboardEvent("keydown", { key: "k", metaKey: true, bubbles: true });
+          window.dispatchEvent(e);
+        }}>
+          <svg width="13" height="13" viewBox="0 0 15 15" fill="none"><circle cx="6.5" cy="6.5" r="4.5" stroke="currentColor" strokeWidth="1.5"/><path d="M10.5 10.5L13 13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
+          <span>Search…</span>
+          <kbd style={{ marginLeft: "auto", fontSize: 10, color: "#B0BAD8", background: "#ECEEF8", padding: "1px 5px", borderRadius: 4 }}>⌘K</kbd>
+        </button>
+      </div>
+
       {/* Nav sections */}
       <nav className="flex-1 overflow-y-auto py-2">
         {navigation.map((section) => (

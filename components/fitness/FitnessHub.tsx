@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import type { FitnessLog, ProgressionSuggestion } from "@/app/api/fitness/logs/route";
 
-type Tab = "plan3" | "plan4" | "cardio" | "nutrition" | "schedule" | "warmup" | "progress" | "log";
+type Tab = "plan3" | "plan4" | "cardio" | "nutrition" | "schedule" | "warmup" | "progress" | "log" | "calendar";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -484,6 +484,7 @@ export function FitnessHub() {
 
   const tabs: { id: Tab; label: string }[] = [
     { id: "log",       label: "📓 Log Workout" },
+    { id: "calendar",  label: "📅 Calendar" },
     { id: "plan3",     label: "3-Day Plan" },
     { id: "plan4",     label: "4-Day Plan" },
     { id: "cardio",    label: "Cardio" },
@@ -523,6 +524,7 @@ export function FitnessHub() {
 
       <div className="fit-body">
         {tab === "log"       && <LogPanel />}
+        {tab === "calendar"  && <WorkoutCalendarPanel />}
         {tab === "plan3"     && <WorkoutPlan days={PLAN_3} intro="3 days per week — ideal when shift work leaves limited energy. Full recovery between sessions. Each week you train, you build the habit." />}
         {tab === "plan4"     && <WorkoutPlan days={PLAN_4} intro="4 days per week — for when you have consistent energy. Upper/lower split allows more volume per muscle group for faster results." />}
         {tab === "cardio"    && <CardioPanel />}
@@ -530,6 +532,105 @@ export function FitnessHub() {
         {tab === "warmup"    && <WarmupPanel />}
         {tab === "schedule"  && <SchedulePanel />}
         {tab === "progress"  && <ProgressionPanel />}
+      </div>
+    </div>
+  );
+}
+
+// ── Workout Calendar Panel ────────────────────────────────────────────────────
+
+function WorkoutCalendarPanel() {
+  const [logs, setLogs] = useState<FitnessLog[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch("/api/fitness/logs?days=90")
+      .then(r => r.json())
+      .then((j: { logs?: FitnessLog[] }) => { setLogs(j.logs ?? []); setLoading(false); })
+      .catch(() => setLoading(false));
+  }, []);
+
+  // Build a map of date → { day, exercises }
+  const byDate = logs.reduce<Record<string, { day: string; exercises: string[] }>>((acc, l) => {
+    if (!acc[l.log_date]) acc[l.log_date] = { day: l.workout_day, exercises: [] };
+    if (!acc[l.log_date]!.exercises.includes(l.exercise_name))
+      acc[l.log_date]!.exercises.push(l.exercise_name);
+    return acc;
+  }, {});
+
+  // Last 12 weeks grid (84 days)
+  const today = new Date();
+  const days: Date[] = Array.from({ length: 84 }, (_, i) => {
+    const d = new Date(today); d.setDate(today.getDate() - 83 + i); return d;
+  });
+
+  const dayColors: Record<string, string> = { A:"#3D52D5", B:"#6B7EE8", C:"#9BA8F0", "1":"#2D3FA8","2":"#4D62D8","3":"#7B8EEE","4":"#A5B0F4" };
+
+  const totalSessions = Object.keys(byDate).length;
+  const thisWeek = days.slice(77).filter(d => byDate[d.toISOString().split("T")[0]!]).length;
+  const streak = (() => {
+    let s = 0;
+    for (let i = 0; i < 30; i++) {
+      const d = new Date(today); d.setDate(today.getDate() - i);
+      if (byDate[d.toISOString().split("T")[0]!]) s++; else if (i > 0) break;
+    }
+    return s;
+  })();
+
+  return (
+    <div>
+      {/* Stats */}
+      <div className="fc-stats-row">
+        <div className="fc-stat"><span className="fc-stat-val">{totalSessions}</span><span className="fc-stat-label">Total sessions (90d)</span></div>
+        <div className="fc-stat"><span className="fc-stat-val">{thisWeek}</span><span className="fc-stat-label">This week</span></div>
+        <div className="fc-stat"><span className="fc-stat-val">{streak}d</span><span className="fc-stat-label">Current streak</span></div>
+        <div className="fc-stat"><span className="fc-stat-val">{Math.round(totalSessions / 13)}/wk</span><span className="fc-stat-label">Avg per week</span></div>
+      </div>
+
+      {/* Heatmap grid */}
+      <div className="fc-card">
+        <div className="fc-card-title">Last 12 Weeks</div>
+        <div className="fc-weekdays"><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span><span>S</span></div>
+        <div className="fc-grid">
+          {days.map(d => {
+            const key  = d.toISOString().split("T")[0]!;
+            const log  = byDate[key];
+            const isToday = key === today.toISOString().split("T")[0]!;
+            return (
+              <div key={key} className={`fc-cell${isToday ? " today" : ""}`}
+                style={{ background: log ? (dayColors[log.day] ?? "#3D52D5") : "#ECEEF8" }}
+                title={log ? `${key}: Day ${log.day} — ${log.exercises.join(", ")}` : key}>
+              </div>
+            );
+          })}
+        </div>
+        <div className="fc-legend">
+          {Object.entries(dayColors).slice(0,4).map(([day, color]) => (
+            <span key={day} className="fc-legend-item">
+              <span className="fc-legend-dot" style={{ background: color }} />Day {day}
+            </span>
+          ))}
+          <span className="fc-legend-item"><span className="fc-legend-dot" style={{ background: "#ECEEF8" }} />Rest</span>
+        </div>
+      </div>
+
+      {/* Recent sessions list */}
+      <div className="fc-card" style={{ marginTop: 14 }}>
+        <div className="fc-card-title">Recent Sessions</div>
+        {loading ? <p className="fc-empty">Loading…</p> : Object.keys(byDate).length === 0 ? (
+          <p className="fc-empty">No sessions logged yet. Start logging in the Log Workout tab!</p>
+        ) : (
+          <div className="fc-sessions">
+            {Object.entries(byDate).sort((a,b) => b[0].localeCompare(a[0])).slice(0,10).map(([date, info]) => (
+              <div key={date} className="fc-session-row">
+                <span className="fc-session-dot" style={{ background: dayColors[info.day] ?? "#3D52D5" }} />
+                <span className="fc-session-date">{new Date(date+"T12:00:00").toLocaleDateString("en-GB",{weekday:"short",day:"numeric",month:"short"})}</span>
+                <span className="fc-session-day">Day {info.day}</span>
+                <span className="fc-session-exs">{info.exercises.slice(0,3).join(" · ")}{info.exercises.length > 3 ? ` +${info.exercises.length-3}` : ""}</span>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
