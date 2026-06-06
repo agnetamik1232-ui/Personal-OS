@@ -61,14 +61,16 @@ export function SalaryForecastCard() {
   const year          = now.getFullYear();
   const month         = now.getMonth();
   const todayStr      = now.toISOString().split("T")[0]!;
-  const totalDays     = new Date(year, month + 1, 0).getDate();
-  const elapsedDays   = now.getDate();
   const days          = daysUntilPayday();
   const net           = summary?.net_salary ?? 0;
   const hoursWorked   = summary?.total_hours ?? 0;
   const daysWorked    = summary?.days_worked ?? 0;
   const expectedDays  = expectedWorkingDays(year, month);
-  const projNet       = elapsedDays > 0 && net > 0 ? Math.round((net / elapsedDays) * totalDays) : net;
+  // Project based on shifts worked, not calendar days
+  // e.g. earned €1,742 across 18 shifts, 22 expected → (1742/18) × 22 = €2,129
+  const projNet       = daysWorked > 0 && net > 0
+    ? Math.round((net / daysWorked) * expectedDays)
+    : net;
   const progressPct   = Math.min(100, Math.round((daysWorked / expectedDays) * 100));
 
   // Build shift lookup map

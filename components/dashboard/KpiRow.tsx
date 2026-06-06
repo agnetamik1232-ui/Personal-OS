@@ -68,9 +68,20 @@ export function KpiRow() {
     : null;
 
   const now         = new Date();
-  const totalDays   = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
-  const elapsedDays = now.getDate();
-  const projNet     = work && work.net_salary > 0 ? Math.round((work.net_salary / elapsedDays) * totalDays) : null;
+  const year        = now.getFullYear();
+  const month       = now.getMonth();
+  // Expected working days Mon–Fri
+  const expectedDays = (() => {
+    const dim = new Date(year, month + 1, 0).getDate();
+    let c = 0;
+    for (let d = 1; d <= dim; d++) { const dow = new Date(year, month, d).getDay(); if (dow !== 0 && dow !== 6) c++; }
+    return c;
+  })();
+  const daysWorked  = work?.days_worked ?? 0;
+  // Project using shifts worked, not calendar days elapsed
+  const projNet     = work && work.net_salary > 0 && daysWorked > 0
+    ? Math.round((work.net_salary / daysWorked) * expectedDays)
+    : null;
 
   const savings = fin?.monthly_savings ?? 0;
   const days    = daysUntilPayday();
