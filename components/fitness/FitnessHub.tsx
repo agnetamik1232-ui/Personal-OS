@@ -2,8 +2,9 @@
 
 import { useState, useEffect, useCallback } from "react";
 import type { FitnessLog, ProgressionSuggestion } from "@/app/api/fitness/logs/route";
+import type { ExerciseProgress } from "@/app/api/fitness/progress/route";
 
-type Tab = "plan3" | "plan4" | "cardio" | "nutrition" | "schedule" | "warmup" | "progress" | "log" | "calendar";
+type Tab = "tracker" | "log" | "calendar" | "plan3" | "plan4" | "cardio" | "nutrition" | "warmup" | "schedule" | "progress";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -480,49 +481,70 @@ const SCHEDULE_4: { day: string; activity: string; note: string }[] = [
 // ── Component ─────────────────────────────────────────────────────────────────
 
 export function FitnessHub() {
-  const [tab, setTab] = useState<Tab>("plan3");
+  const [tab, setTab] = useState<Tab>("tracker");
 
-  const tabs: { id: Tab; label: string }[] = [
-    { id: "log",       label: "📓 Log Workout" },
-    { id: "calendar",  label: "📅 Calendar" },
-    { id: "plan3",     label: "3-Day Plan" },
-    { id: "plan4",     label: "4-Day Plan" },
-    { id: "cardio",    label: "Cardio" },
-    { id: "nutrition", label: "Nutrition" },
-    { id: "warmup",    label: "Warm-up & Cool-down" },
-    { id: "schedule",  label: "Weekly Schedule" },
-    { id: "progress",  label: "Progression" },
+  const tabGroups = [
+    {
+      label: "Training",
+      tabs: [
+        { id: "tracker" as Tab, label: "📊 My Progress" },
+        { id: "log"     as Tab, label: "📓 Log Workout" },
+        { id: "calendar"as Tab, label: "📅 Calendar" },
+      ],
+    },
+    {
+      label: "Plan",
+      tabs: [
+        { id: "plan3"   as Tab, label: "3-Day Plan" },
+        { id: "plan4"   as Tab, label: "4-Day Plan" },
+        { id: "schedule"as Tab, label: "Schedule" },
+        { id: "progress"as Tab, label: "Overload Guide" },
+      ],
+    },
+    {
+      label: "Reference",
+      tabs: [
+        { id: "cardio"  as Tab, label: "Cardio" },
+        { id: "nutrition"as Tab,label: "Nutrition" },
+        { id: "warmup"  as Tab, label: "Warm-up" },
+      ],
+    },
   ];
 
   return (
     <div className="fit-shell">
-      {/* Header */}
-      <div className="fit-header">
-        <div>
-          <h1 className="fit-title">Your Fitness Plan</h1>
-          <p className="fit-subtitle">Built for fat loss · PCOS-aware · Knee-friendly · Made for long shift workers</p>
+      {/* Hero header */}
+      <div className="fit-hero">
+        <div className="fit-hero-left">
+          <h1 className="fit-hero-title">Fitness Hub</h1>
+          <p className="fit-hero-sub">PCOS-aware · Knee-friendly · Built for shift workers</p>
         </div>
-        <div className="fit-goal-chip">🎯 Goal: 85 kg → 60 kg</div>
+        <div className="fit-hero-chips">
+          <div className="fit-hero-chip"><span className="fit-hero-chip-val">85→60</span><span className="fit-hero-chip-label">kg goal</span></div>
+          <div className="fit-hero-chip"><span className="fit-hero-chip-val">1,675</span><span className="fit-hero-chip-label">kcal/day</span></div>
+          <div className="fit-hero-chip"><span className="fit-hero-chip-val">163g</span><span className="fit-hero-chip-label">protein</span></div>
+          <div className="fit-hero-chip"><span className="fit-hero-chip-val">10k</span><span className="fit-hero-chip-label">steps</span></div>
+        </div>
       </div>
 
-      {/* Quick Stats */}
-      <div className="fit-stats-row">
-        <div className="fit-stat"><span className="fit-stat-value">1,600–1,750</span><span className="fit-stat-label">kcal/day target</span></div>
-        <div className="fit-stat"><span className="fit-stat-value">155–170g</span><span className="fit-stat-label">protein/day</span></div>
-        <div className="fit-stat"><span className="fit-stat-value">10,000</span><span className="fit-stat-label">steps/day</span></div>
-        <div className="fit-stat"><span className="fit-stat-value">~25 kg</span><span className="fit-stat-label">to target weight</span></div>
-      </div>
-
-      {/* Tabs */}
-      <div className="fit-tabs">
-        {tabs.map(t => (
-          <button key={t.id} className={`fit-tab${tab === t.id ? " active" : ""}`} onClick={() => setTab(t.id)}>
-            {t.label}
-          </button>
+      {/* Grouped tabs */}
+      <div className="fit-tab-groups">
+        {tabGroups.map(group => (
+          <div key={group.label} className="fit-tab-group">
+            <span className="fit-tab-group-label">{group.label}</span>
+            <div className="fit-tab-group-tabs">
+              {group.tabs.map(t => (
+                <button key={t.id} className={`fit-tab${tab === t.id ? " active" : ""}`} onClick={() => setTab(t.id)}>
+                  {t.label}
+                </button>
+              ))}
+            </div>
+          </div>
         ))}
       </div>
 
       <div className="fit-body">
+        {tab === "tracker"   && <ExerciseTrackerPanel />}
         {tab === "log"       && <LogPanel />}
         {tab === "calendar"  && <WorkoutCalendarPanel />}
         {tab === "plan3"     && <WorkoutPlan days={PLAN_3} intro="3 days per week — ideal when shift work leaves limited energy. Full recovery between sessions. Each week you train, you build the habit." />}
@@ -533,6 +555,213 @@ export function FitnessHub() {
         {tab === "schedule"  && <SchedulePanel />}
         {tab === "progress"  && <ProgressionPanel />}
       </div>
+    </div>
+  );
+}
+
+// ── Exercise Tracker Panel ────────────────────────────────────────────────────
+
+function WeightChart({ sessions }: { sessions: { date: string; maxWeight: number | null }[] }) {
+  const withWeight = sessions.filter(s => s.maxWeight !== null);
+  if (withWeight.length < 2) return <p className="fit-chart-empty">Log 2+ sessions to see your chart</p>;
+
+  const W = 500, H = 120, PAD = { t: 12, r: 12, b: 28, l: 36 };
+  const weights = withWeight.map(s => s.maxWeight as number);
+  const minW = Math.min(...weights);
+  const maxW = Math.max(...weights);
+  const range = maxW - minW || 1;
+
+  const px = (i: number) => PAD.l + ((i / (withWeight.length - 1)) * (W - PAD.l - PAD.r));
+  const py = (w: number) => PAD.t + ((1 - (w - minW) / range) * (H - PAD.t - PAD.b));
+
+  const points = withWeight.map((s, i) => `${px(i)},${py(s.maxWeight as number)}`).join(" ");
+  const area   = `M${px(0)},${py(withWeight[0]!.maxWeight as number)} ${withWeight.map((s,i)=>`L${px(i)},${py(s.maxWeight as number)}`).join(" ")} L${px(withWeight.length-1)},${H-PAD.b} L${px(0)},${H-PAD.b} Z`;
+
+  const pr = Math.max(...weights);
+
+  return (
+    <div className="fit-chart-wrap">
+      <svg viewBox={`0 0 ${W} ${H}`} className="fit-chart-svg" preserveAspectRatio="none">
+        {/* Grid lines */}
+        {[0, 0.5, 1].map(f => (
+          <line key={f} x1={PAD.l} x2={W - PAD.r}
+            y1={PAD.t + f * (H - PAD.t - PAD.b)} y2={PAD.t + f * (H - PAD.t - PAD.b)}
+            stroke="rgba(100,120,220,0.10)" strokeWidth="1" />
+        ))}
+        {/* Area fill */}
+        <path d={area} fill="rgba(61,82,213,0.08)" />
+        {/* Line */}
+        <polyline points={points} fill="none" stroke="#3D52D5" strokeWidth="2.5" strokeLinejoin="round" strokeLinecap="round" />
+        {/* Data points */}
+        {withWeight.map((s, i) => {
+          const isPR = s.maxWeight === pr;
+          return (
+            <g key={i}>
+              <circle cx={px(i)} cy={py(s.maxWeight as number)} r={isPR ? 5 : 3.5}
+                fill={isPR ? "#3D52D5" : "#fff"} stroke="#3D52D5" strokeWidth="2" />
+              {isPR && <text x={px(i)} y={py(s.maxWeight as number) - 8} textAnchor="middle" fontSize="9" fill="#3D52D5" fontWeight="700">PR</text>}
+            </g>
+          );
+        })}
+        {/* Y axis labels */}
+        <text x={PAD.l - 4} y={PAD.t + 4} textAnchor="end" fontSize="9" fill="#9AA3CC">{maxW}kg</text>
+        <text x={PAD.l - 4} y={H - PAD.b} textAnchor="end" fontSize="9" fill="#9AA3CC">{minW}kg</text>
+        {/* X axis dates */}
+        <text x={PAD.l} y={H - 4} fontSize="8" fill="#9AA3CC">
+          {new Date(withWeight[0]!.date + "T12:00:00").toLocaleDateString("en-GB", { day: "numeric", month: "short" })}
+        </text>
+        <text x={W - PAD.r} y={H - 4} fontSize="8" fill="#9AA3CC" textAnchor="end">
+          {new Date(withWeight[withWeight.length-1]!.date + "T12:00:00").toLocaleDateString("en-GB", { day: "numeric", month: "short" })}
+        </text>
+      </svg>
+    </div>
+  );
+}
+
+function ExerciseTrackerPanel() {
+  const [progress, setProgress]   = useState<ExerciseProgress[]>([]);
+  const [loading, setLoading]     = useState(true);
+  const [selected, setSelected]   = useState<string | null>(null);
+  const [search, setSearch]       = useState("");
+
+  useEffect(() => {
+    fetch("/api/fitness/progress")
+      .then(r => r.json())
+      .then((j: { progress?: ExerciseProgress[] }) => {
+        const p = j.progress ?? [];
+        setProgress(p);
+        if (p.length > 0 && !selected) setSelected(p[0]!.name);
+        setLoading(false);
+      })
+      .catch(() => setLoading(false));
+  }, []);
+
+  const filtered = progress.filter(p =>
+    !search || p.name.toLowerCase().includes(search.toLowerCase())
+  );
+  const current = progress.find(p => p.name === selected);
+
+  if (loading) return <div className="fit-tracker-loading"><div className="fit-spinner" />Loading your progress…</div>;
+
+  if (progress.length === 0) return (
+    <div className="fit-tracker-empty">
+      <div className="fit-tracker-empty-icon">🏋️</div>
+      <h3>No exercises logged yet</h3>
+      <p>Go to <strong>Log Workout</strong> and start tracking. Your progress charts will appear here.</p>
+    </div>
+  );
+
+  return (
+    <div className="fit-tracker-layout">
+      {/* Left: exercise list */}
+      <div className="fit-tracker-sidebar">
+        <input className="fit-tracker-search" placeholder="Search exercises…" value={search}
+          onChange={e => setSearch(e.target.value)} />
+        <div className="fit-tracker-list">
+          {filtered.map(p => {
+            const trend = p.sessions.length >= 2
+              ? (p.sessions[p.sessions.length-1]!.maxWeight ?? 0) - (p.sessions[p.sessions.length-2]!.maxWeight ?? 0)
+              : null;
+            return (
+              <button key={p.name} className={`fit-tracker-item${selected === p.name ? " active" : ""}`}
+                onClick={() => setSelected(p.name)}>
+                <div className="fit-tracker-item-name">{p.name}</div>
+                <div className="fit-tracker-item-meta">
+                  {p.pr !== null ? <span className="fit-pr-badge">PR {p.pr}kg</span> : <span className="fit-pr-badge fit-pr-bw">Bodyweight</span>}
+                  {trend !== null && trend !== 0 && (
+                    <span className={`fit-trend ${trend > 0 ? "up" : "down"}`}>
+                      {trend > 0 ? "↑" : "↓"}{Math.abs(trend)}kg
+                    </span>
+                  )}
+                </div>
+                <div className="fit-tracker-item-sub">{p.sessions.length} session{p.sessions.length !== 1 ? "s" : ""}</div>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Right: detail */}
+      {current && (
+        <div className="fit-tracker-detail">
+          {/* Header */}
+          <div className="fit-tracker-detail-header">
+            <h2 className="fit-tracker-detail-name">{current.name}</h2>
+            <div className="fit-tracker-detail-badges">
+              {current.pr !== null && (
+                <div className="fit-pr-card">
+                  <span className="fit-pr-card-label">Personal Record</span>
+                  <span className="fit-pr-card-val">{current.pr} kg</span>
+                  {current.prDate && <span className="fit-pr-card-date">{new Date(current.prDate + "T12:00:00").toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}</span>}
+                </div>
+              )}
+              <div className="fit-pr-card">
+                <span className="fit-pr-card-label">Total Volume</span>
+                <span className="fit-pr-card-val">{current.sessions.reduce((s,x) => s + x.volume, 0).toLocaleString()} kg</span>
+                <span className="fit-pr-card-date">{current.totalSets} sets · {current.totalReps} reps</span>
+              </div>
+              <div className="fit-pr-card">
+                <span className="fit-pr-card-label">Sessions</span>
+                <span className="fit-pr-card-val">{current.sessions.length}</span>
+                <span className="fit-pr-card-date">Last: {current.lastDate ? new Date(current.lastDate + "T12:00:00").toLocaleDateString("en-GB", { day: "numeric", month: "short" }) : "—"}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Weight chart */}
+          <div className="fit-tracker-chart-section">
+            <div className="fit-tracker-section-title">Weight Progress</div>
+            <WeightChart sessions={current.sessions} />
+          </div>
+
+          {/* Volume chart (bar) */}
+          {current.sessions.some(s => s.volume > 0) && (
+            <div className="fit-tracker-chart-section">
+              <div className="fit-tracker-section-title">Session Volume (kg lifted)</div>
+              <div className="fit-vol-bars">
+                {current.sessions.slice(-12).map((s, i, arr) => {
+                  const maxVol = Math.max(...arr.map(x => x.volume));
+                  const pct = maxVol > 0 ? (s.volume / maxVol) * 100 : 0;
+                  return (
+                    <div key={i} className="fit-vol-bar-wrap" title={`${s.date}: ${s.volume}kg volume`}>
+                      <div className="fit-vol-bar-fill" style={{ height: `${pct}%` }} />
+                      <span className="fit-vol-bar-label">{new Date(s.date + "T12:00:00").getDate()}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Session history */}
+          <div className="fit-tracker-chart-section">
+            <div className="fit-tracker-section-title">Session History</div>
+            <div className="fit-session-history">
+              {[...current.sessions].reverse().slice(0, 8).map((s, i) => {
+                const prevSession = [...current.sessions].reverse()[i + 1];
+                const weightDiff = s.maxWeight !== null && prevSession?.maxWeight !== null && prevSession?.maxWeight !== undefined
+                  ? s.maxWeight - prevSession.maxWeight : null;
+                return (
+                  <div key={i} className="fit-session-row">
+                    <span className="fit-session-date">
+                      {new Date(s.date + "T12:00:00").toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" })}
+                    </span>
+                    <span className="fit-session-weight">
+                      {s.maxWeight !== null ? `${s.maxWeight} kg` : "BW"}
+                    </span>
+                    <span className="fit-session-reps">{s.sets} sets · {s.totalReps} reps</span>
+                    {weightDiff !== null && weightDiff !== 0 && (
+                      <span className={`fit-session-diff ${weightDiff > 0 ? "up" : "down"}`}>
+                        {weightDiff > 0 ? "+" : ""}{weightDiff}kg
+                      </span>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
