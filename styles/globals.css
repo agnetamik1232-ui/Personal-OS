@@ -9423,3 +9423,24 @@ aside p.text-2xs { color: #9AA3CC !important; }
 .ntf-item-link:hover .ntf-success { background: #DCFCE7; }
 
 .ntf-footer   { padding: 8px 16px; border-top: 1px solid rgba(100,120,220,0.08); font-size: 0.7rem; color: #B0BAD8; text-align: right; }
+
+/* ── Salary Forecast Card — mini calendar ────────────────────────────────────── */
+.sf-progress-wrap   { margin: 10px 0 12px; }
+.sf-progress-bar    { height: 5px; background: #ECEEF8; border-radius: 5px; overflow: hidden; margin-bottom: 4px; }
+.sf-progress-fill   { height: 100%; background: linear-gradient(90deg, #3D52D5, #6B7EE8); border-radius: 5px; transition: width 0.5s; }
+.sf-progress-label  { font-size: 0.68rem; color: #9AA3CC; font-weight: 500; }
+
+.sf-mini-cal        { margin-top: 10px; border-top: 1px solid rgba(100,120,220,0.08); padding-top: 10px; }
+.sf-mini-weekdays   { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; margin-bottom: 4px; }
+.sf-mini-wd         { font-size: 0.6rem; font-weight: 700; text-align: center; color: #B0BAD8; text-transform: uppercase; }
+.sf-mini-grid       { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
+.sf-mini-cell       { aspect-ratio: 1; border-radius: 4px; display: flex; align-items: center; justify-content: center; border: 1px solid transparent; background: #F5F6FC; }
+.sf-mini-cell.empty { background: transparent; border: none; }
+.sf-mini-cell.today { border-color: #3D52D5 !important; background: #EEF2FF !important; }
+.sf-mini-cell.has-shift { border-radius: 5px; }
+.sf-mini-num        { font-size: 0.6rem; font-weight: 600; color: #9AA3CC; line-height: 1; }
+.sf-mini-cell.today .sf-mini-num { color: #3D52D5; font-weight: 800; }
+.sf-mini-legend     { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+.sf-mini-legend-item { display: flex; align-items: center; gap: 3px; font-size: 0.62rem; color: #9AA3CC; }
+.sf-mini-legend-dot { width: 7px; height: 7px; border-radius: 2px; flex-shrink: 0; }
+.sf-no-shifts       { font-size: 0.72rem; color: #B0BAD8; text-align: center; margin: 8px 0 0; }
