@@ -16,7 +16,25 @@ import {
   BookOpen,
   Briefcase,
   Dumbbell,
+  Moon,
+  Sun,
+  Ruler,
+  Pill,
+  Heart,
 } from "lucide-react";
+
+function useDarkMode() {
+  const [dark, setDark] = useState(false);
+  useEffect(() => {
+    setDark(document.documentElement.classList.contains("dark"));
+  }, []);
+  function toggle() {
+    const isDark = document.documentElement.classList.toggle("dark");
+    setDark(isDark);
+    localStorage.setItem("theme", isDark ? "dark" : "light");
+  }
+  return { dark, toggle };
+}
 
 interface NavItem {
   label:  string;
@@ -46,8 +64,9 @@ function useDueTodayCount() {
 }
 
 export function Sidebar() {
-  const pathname = usePathname();
-  const dueToday = useDueTodayCount();
+  const pathname  = usePathname();
+  const dueToday  = useDueTodayCount();
+  const { dark, toggle } = useDarkMode();
 
   const navigation: NavSection[] = [
     {
@@ -61,10 +80,13 @@ export function Sidebar() {
     {
       label: "Wellbeing",
       items: [
-        { label: "Habits",    href: "/habits",   icon: Activity },
-        { label: "Health",    href: "/health",   icon: Layers },
-        { label: "Fitness",   href: "/fitness",  icon: Dumbbell },
-        { label: "Journal",   href: "/journal",  icon: BookOpen },
+        { label: "Habits",       href: "/habits",       icon: Activity },
+        { label: "Health",       href: "/health",       icon: Layers },
+        { label: "Fitness",      href: "/fitness",      icon: Dumbbell },
+        { label: "Body",         href: "/body",         icon: Ruler },
+        { label: "Supplements",  href: "/supplements",  icon: Pill },
+        { label: "Cycle",        href: "/period",       icon: Heart },
+        { label: "Journal",      href: "/journal",      icon: BookOpen },
       ],
     },
     {
@@ -134,6 +156,10 @@ export function Sidebar() {
           <Settings size={16} style={{ flexShrink: 0 }} />
           <span>Settings</span>
         </Link>
+        <button className="sidebar-nav-item" onClick={toggle} style={{ marginTop: 2 }}>
+          {dark ? <Sun size={16} style={{ flexShrink: 0 }} /> : <Moon size={16} style={{ flexShrink: 0 }} />}
+          <span>{dark ? "Light mode" : "Dark mode"}</span>
+        </button>
         <div className="sidebar-user" style={{ marginTop: 4 }}>
           <div className="sidebar-avatar">A</div>
           <div>
