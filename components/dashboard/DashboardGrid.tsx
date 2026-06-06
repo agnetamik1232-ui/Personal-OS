@@ -33,16 +33,18 @@ export function DashboardGrid() {
           <TodayFocusSection />
         </div>
 
-        {/* Snapshot row */}
-        <div className="dash-two-col">
+        {/* Salary left, Health + Habits stacked right */}
+        <div className="dash-two-col dash-two-col-asymmetric">
           <SalaryForecastCard />
-          <HealthSnapshotCard />
+          <div className="dash-stack">
+            <HealthSnapshotCard />
+            <HabitsCard />
+          </div>
         </div>
 
-        {/* Calendar + Habits + Nutrition */}
-        <div className="dash-three-col">
+        {/* Calendar + Nutrition */}
+        <div className="dash-two-col">
           <CalendarCard />
-          <HabitsCard />
           <NutritionCard />
         </div>
 

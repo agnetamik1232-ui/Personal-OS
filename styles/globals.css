@@ -9444,3 +9444,9 @@ aside p.text-2xs { color: #9AA3CC !important; }
 .sf-mini-legend-item { display: flex; align-items: center; gap: 3px; font-size: 0.62rem; color: #9AA3CC; }
 .sf-mini-legend-dot { width: 7px; height: 7px; border-radius: 2px; flex-shrink: 0; }
 .sf-no-shifts       { font-size: 0.72rem; color: #B0BAD8; text-align: center; margin: 8px 0 0; }
+
+/* ── Dashboard layout helpers ─────────────────────────────────────────────── */
+.dash-stack { display: flex; flex-direction: column; gap: 14px; }
+@media (max-width: 768px) {
+  .dash-two-col-asymmetric { grid-template-columns: 1fr; }
+}
