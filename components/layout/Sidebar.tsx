@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
+import { NotificationBell } from "@/components/ui/Notifications";
 import {
   LayoutDashboard,
   CheckSquare,
@@ -161,6 +162,11 @@ export function Sidebar() {
           </div>
         ))}
       </nav>
+
+      {/* Notifications */}
+      <div style={{ padding: "0 12px 6px" }}>
+        <NotificationBell />
+      </div>
 
       {/* Bottom */}
       <div className="sidebar-bottom">
