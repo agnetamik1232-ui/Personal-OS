@@ -2,7 +2,6 @@ import { KpiRow }             from "./KpiRow";
 import { ExecutiveBrief }     from "./ExecutiveBrief";
 import { TodayFocusSection }  from "./TodayFocusSection";
 import { SalaryForecastCard } from "./SalaryForecastCard";
-import { WorkSnapshot }       from "./WorkSnapshot";
 import { HealthSnapshotCard } from "./HealthSnapshotCard";
 import { CalendarCard }       from "./CalendarCard";
 import { HabitsCard }         from "./HabitsCard";
@@ -35,9 +34,8 @@ export function DashboardGrid() {
         </div>
 
         {/* Snapshot row */}
-        <div className="dash-three-col">
+        <div className="dash-two-col">
           <SalaryForecastCard />
-          <WorkSnapshot />
           <HealthSnapshotCard />
         </div>
 
