@@ -84,10 +84,8 @@ export function ExecutiveBrief() {
       const todayCi    = (ci as { checkin?: { mood?: number | null; sleep_hours?: number | null } | null }).checkin;
       const finData    = (f as { summary?: FinSummary }).summary;
 
-      // Salary projection: full calendar month, paid on 10th of next month
-      const totalDays   = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
-      const elapsedDays = now.getDate();
-      const projNet     = workData && workData.net_salary > 0 ? Math.round((workData.net_salary / elapsedDays) * totalDays) : null;
+      // Net pay: actual from logged shifts (no projection)
+      const projNet = workData && workData.net_salary > 0 ? workData.net_salary : null;
 
       // Alerts
       const alerts: string[] = [];
@@ -151,7 +149,7 @@ export function ExecutiveBrief() {
             {data.projNet && (
               <div className="eb-item">
                 <span className="eb-dot eb-dot-green" />
-                <span>Salary forecast {fmt(data.projNet)} net · {days === 0 ? "payday today" : `${days} days`}</span>
+                <span>Net earned this month: {fmt(data.projNet)} · {days === 0 ? "payday today 🎉" : `payday in ${days} days`}</span>
               </div>
             )}
             {data.sleep !== null && (
