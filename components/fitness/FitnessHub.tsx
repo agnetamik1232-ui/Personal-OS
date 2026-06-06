@@ -901,6 +901,8 @@ function LogPanel() {
   // Form state
   const [day, setDay]                 = useState("A");
   const [exercise, setExercise]       = useState(EXERCISES_BY_DAY["A"]![0]!);
+  const [exInput, setExInput]         = useState(EXERCISES_BY_DAY["A"]![0]!);
+  const [showSuggestions, setShowSuggestions] = useState(false);
   const [sets, setSets]               = useState<SetEntry[]>([{ weight: "", reps: "" }, { weight: "", reps: "" }, { weight: "", reps: "" }]);
   const [saving, setSaving]           = useState(false);
   const [saved, setSaved]             = useState(false);
@@ -919,8 +921,34 @@ function LogPanel() {
   // When day changes, reset exercise to first in that day
   function handleDayChange(d: string) {
     setDay(d);
-    setExercise(EXERCISES_BY_DAY[d]?.[0] ?? "");
+    const first = EXERCISES_BY_DAY[d]?.[0] ?? "";
+    setExercise(first);
+    setExInput(first);
   }
+
+  function pickExercise(name: string) {
+    setExercise(name);
+    setExInput(name);
+    setShowSuggestions(false);
+  }
+
+  function handleExInput(val: string) {
+    setExInput(val);
+    setExercise(val);
+    setShowSuggestions(true);
+  }
+
+  // All exercise options: plan day + previously logged custom ones
+  const allPlanExercises = Object.values(EXERCISES_BY_DAY).flat();
+  const loggedExercises  = [...new Set(logs.map(l => l.exercise_name))];
+  const customExercises  = loggedExercises.filter(e => !allPlanExercises.includes(e));
+  const allOptions       = [
+    ...(EXERCISES_BY_DAY[day] ?? []),
+    ...customExercises,
+  ];
+  const filtered = exInput
+    ? allOptions.filter(e => e.toLowerCase().includes(exInput.toLowerCase()))
+    : allOptions;
 
   function updateSet(i: number, field: "weight" | "reps", val: string) {
     setSets(prev => prev.map((s, idx) => idx === i ? { ...s, [field]: val } : s));
@@ -1018,19 +1046,33 @@ function LogPanel() {
               </optgroup>
             </select>
           </div>
-          <div className="fl-field" style={{ flex: 2 }}>
-            <label className="fl-label">Exercise</label>
-            <select className="fl-select" value={exercise} onChange={e => setExercise(e.target.value)}>
-              {(EXERCISES_BY_DAY[day] ?? []).map(ex => (
-                <option key={ex} value={ex}>{ex}</option>
-              ))}
-              <option value="__custom">Other (type below)</option>
-            </select>
+          <div className="fl-field" style={{ flex: 2, position: "relative" }}>
+            <label className="fl-label">Exercise — type to search or add your own</label>
+            <input
+              className="fl-input"
+              value={exInput}
+              onChange={e => handleExInput(e.target.value)}
+              onFocus={() => setShowSuggestions(true)}
+              onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
+              placeholder="Type exercise name…"
+              autoComplete="off"
+            />
+            {showSuggestions && (
+              <div className="fl-autocomplete">
+                {filtered.length > 0 ? filtered.map(ex => (
+                  <button key={ex} className="fl-autocomplete-item" onMouseDown={() => pickExercise(ex)}>
+                    {ex}
+                    {customExercises.includes(ex) && <span className="fl-custom-tag">custom</span>}
+                  </button>
+                )) : exInput.trim() ? (
+                  <button className="fl-autocomplete-item fl-autocomplete-new" onMouseDown={() => pickExercise(exInput.trim())}>
+                    + Add &ldquo;{exInput.trim()}&rdquo; as new exercise
+                  </button>
+                ) : null}
+              </div>
+            )}
           </div>
         </div>
-        {exercise === "__custom" && (
-          <input className="fl-input" placeholder="Exercise name" onChange={e => setExercise(e.target.value)} />
-        )}
 
         {/* Target reminder */}
         {REPS_TARGET[exercise] && (
