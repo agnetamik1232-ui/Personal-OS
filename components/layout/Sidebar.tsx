@@ -13,23 +13,21 @@ import {
   Brain,
   Settings,
   Layers,
-  ChevronRight,
   BookOpen,
   Briefcase,
   Dumbbell,
 } from "lucide-react";
-import { cn } from "@/lib/utils/cn";
-
-interface NavSection {
-  label: string;
-  items: NavItem[];
-}
 
 interface NavItem {
   label:  string;
   href:   string;
   icon:   React.ElementType;
   badge?: string | null;
+}
+
+interface NavSection {
+  label: string;
+  items: NavItem[];
 }
 
 function useDueTodayCount() {
@@ -48,144 +46,103 @@ function useDueTodayCount() {
 }
 
 export function Sidebar() {
-  const pathname  = usePathname();
-  const dueToday  = useDueTodayCount();
+  const pathname = usePathname();
+  const dueToday = useDueTodayCount();
 
   const navigation: NavSection[] = [
     {
       label: "Core",
       items: [
         { label: "Dashboard",  href: "/dashboard",  icon: LayoutDashboard },
-        { label: "Tasks",      href: "/tasks",       icon: CheckSquare,    badge: dueToday != null ? String(dueToday) : null },
+        { label: "Tasks",      href: "/tasks",       icon: CheckSquare, badge: dueToday != null ? String(dueToday) : null },
         { label: "Analytics",  href: "/analytics",   icon: BarChart2 },
       ],
     },
     {
       label: "Wellbeing",
       items: [
-        { label: "Habits",     href: "/habits",      icon: Activity },
-        { label: "Health",     href: "/health",      icon: Layers },
-        { label: "Fitness",    href: "/fitness",     icon: Dumbbell },
-        { label: "Journal",    href: "/journal",     icon: BookOpen },
+        { label: "Habits",    href: "/habits",   icon: Activity },
+        { label: "Health",    href: "/health",   icon: Layers },
+        { label: "Fitness",   href: "/fitness",  icon: Dumbbell },
+        { label: "Journal",   href: "/journal",  icon: BookOpen },
       ],
     },
     {
       label: "Operations",
       items: [
-        { label: "Work",       href: "/work",        icon: Briefcase },
-        { label: "Finance",    href: "/finance",     icon: DollarSign },
-        { label: "Workflows",  href: "/workflows",   icon: CheckSquare },
-        { label: "Capture",    href: "/capture",     icon: MessageCircle },
+        { label: "Work",      href: "/work",      icon: Briefcase },
+        { label: "Finance",   href: "/finance",   icon: DollarSign },
+        { label: "Capture",   href: "/capture",   icon: MessageCircle },
       ],
     },
     {
       label: "Intelligence",
       items: [
-        { label: "AI Memory",  href: "/memory",      icon: Brain },
+        { label: "AI Memory", href: "/memory", icon: Brain },
       ],
     },
   ];
 
+  function isActive(href: string) {
+    return href === "/dashboard" ? pathname === "/dashboard" : pathname.startsWith(href);
+  }
+
   return (
-    <aside
-      className="flex flex-col w-[var(--sidebar-w)] h-full flex-shrink-0"
-      style={{ backgroundColor: "oklch(var(--sidebar))" }}
-    >
-      {/* Logo / wordmark */}
-      <div className="flex items-center gap-2.5 px-5 h-[var(--header-h)] flex-shrink-0">
-        <div className="w-7 h-7 rounded-lg bg-accent/20 flex items-center justify-center flex-shrink-0">
-          <div className="w-3 h-3 rounded-sm bg-accent" />
+    <aside className="flex flex-col h-full" style={{ minHeight: "100dvh" }}>
+
+      {/* Logo */}
+      <div className="sidebar-logo">
+        <div className="sidebar-logo-mark">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <rect x="2" y="2" width="5" height="5" rx="1.5" fill="white"/>
+            <rect x="9" y="2" width="5" height="5" rx="1.5" fill="rgba(255,255,255,0.6)"/>
+            <rect x="2" y="9" width="5" height="5" rx="1.5" fill="rgba(255,255,255,0.6)"/>
+            <rect x="9" y="9" width="5" height="5" rx="1.5" fill="rgba(255,255,255,0.4)"/>
+          </svg>
         </div>
-        <span className="text-sm font-semibold text-sidebar-text tracking-tight">
-          Personal OS
-        </span>
+        <div>
+          <div className="sidebar-logo-text">Personal OS</div>
+          <div className="sidebar-logo-sub">Your life dashboard</div>
+        </div>
       </div>
 
-      <div
-        className="flex-shrink-0 mx-4"
-        style={{ borderBottom: "1px solid oklch(var(--sidebar-border))" }}
-      />
-
-      {/* Navigation */}
-      <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-6 scroll-y">
+      {/* Nav sections */}
+      <nav className="flex-1 overflow-y-auto py-2">
         {navigation.map((section) => (
-          <div key={section.label}>
-            <p className="px-3 mb-1.5 text-2xs font-semibold uppercase tracking-widest text-sidebar-muted">
-              {section.label}
-            </p>
-            <ul className="space-y-0.5">
-              {section.items.map((item) => {
-                const isActive =
-                  item.href === "/dashboard"
-                    ? pathname === "/dashboard"
-                    : pathname.startsWith(item.href);
-                const Icon = item.icon;
-                return (
-                  <li key={item.href}>
-                    <Link
-                      href={item.href}
-                      className={cn(
-                        "nav-item group",
-                        isActive && "active"
-                      )}
-                    >
-                      <Icon
-                        size={16}
-                        className={cn(
-                          "nav-icon flex-shrink-0 transition-colors duration-150",
-                          isActive
-                            ? "text-accent"
-                            : "text-sidebar-muted group-hover:text-sidebar-text"
-                        )}
-                      />
-                      <span className="flex-1 text-sidebar-muted group-hover:text-sidebar-text transition-colors duration-150">
-                        {item.label}
-                      </span>
-                      {item.badge && (
-                        <span className="text-2xs font-semibold tabular-nums px-1.5 py-0.5 rounded-full bg-accent/15 text-accent">
-                          {item.badge}
-                        </span>
-                      )}
-                    </Link>
-                  </li>
-                );
-              })}
-            </ul>
+          <div key={section.label} className="sidebar-section">
+            <div className="sidebar-section-label">{section.label}</div>
+            {section.items.map((item) => {
+              const Icon = item.icon;
+              const active = isActive(item.href);
+              return (
+                <Link key={item.href} href={item.href} className={`sidebar-nav-item${active ? " active" : ""}`}>
+                  <Icon size={16} style={{ flexShrink: 0 }} />
+                  <span style={{ flex: 1 }}>{item.label}</span>
+                  {item.badge && (
+                    <span className="sidebar-nav-badge">{item.badge}</span>
+                  )}
+                </Link>
+              );
+            })}
           </div>
         ))}
       </nav>
 
-      {/* Bottom rail */}
-      <div
-        className="flex-shrink-0 mx-4"
-        style={{ borderTop: "1px solid oklch(var(--sidebar-border))" }}
-      />
-      <div className="p-3">
-        <Link
-          href="/settings"
-          className={cn(
-            "nav-item group",
-            pathname.startsWith("/settings") && "active"
-          )}
-        >
-          <Settings
-            size={16}
-            className="text-sidebar-muted group-hover:text-sidebar-text flex-shrink-0 transition-colors duration-150"
-          />
-          <span className="flex-1 text-sidebar-muted group-hover:text-sidebar-text transition-colors duration-150">
-            Settings
-          </span>
+      {/* Bottom */}
+      <div className="sidebar-bottom">
+        <Link href="/settings" className={`sidebar-nav-item${isActive("/settings") ? " active" : ""}`}>
+          <Settings size={16} style={{ flexShrink: 0 }} />
+          <span>Settings</span>
         </Link>
-
-        {/* User pill */}
-        <button className="nav-item w-full mt-1">
-          <div className="w-6 h-6 rounded-full bg-accent/25 flex items-center justify-center flex-shrink-0">
-            <span className="text-2xs font-bold text-accent">A</span>
+        <div className="sidebar-user" style={{ marginTop: 4 }}>
+          <div className="sidebar-avatar">A</div>
+          <div>
+            <div className="sidebar-user-name">Agneta</div>
+            <div className="sidebar-user-role">Team Lead</div>
           </div>
-          <span className="flex-1 text-left text-sidebar-muted text-xs">Agneta</span>
-          <ChevronRight size={12} className="text-sidebar-muted" />
-        </button>
+        </div>
       </div>
+
     </aside>
   );
 }
