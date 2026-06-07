@@ -8,6 +8,7 @@ import { HabitsCard }         from "./HabitsCard";
 import { NutritionCard }      from "./NutritionCard";
 import { CheckInGate }        from "./CheckInGate";
 import { TodaySummaryBar }    from "./TodaySummaryBar";
+import { DailyTrackingCard }  from "./DailyTrackingCard";
 export function DashboardGrid() {
   return (
     <>
@@ -23,9 +24,10 @@ export function DashboardGrid() {
           <KpiRow />
         </div>
 
-        {/* AI Executive Brief */}
-        <div className="dash-full">
+        {/* AI Executive Brief + Today's Tracking checklist */}
+        <div className="dash-two-col dash-two-col-asymmetric">
           <ExecutiveBrief />
+          <DailyTrackingCard />
         </div>
 
         {/* Today's Focus */}
