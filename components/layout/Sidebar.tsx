@@ -21,6 +21,7 @@ import {
   Moon,
   Sun,
   Library,
+  ChefHat,
   Ruler,
   Pill,
   Heart,
@@ -85,6 +86,7 @@ export function Sidebar() {
       items: [
         { label: "Habits",       href: "/habits",       icon: Activity },
         { label: "Health",       href: "/health",       icon: Layers },
+        { label: "Meals",        href: "/meals",        icon: ChefHat },
         { label: "Fitness",      href: "/fitness",      icon: Dumbbell },
         { label: "Body",         href: "/body",         icon: Ruler },
         { label: "Supplements",  href: "/supplements",  icon: Pill },
