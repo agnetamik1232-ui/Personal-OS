@@ -205,19 +205,39 @@ export function FinanceDashboard() {
   }
 
   async function markPaid(r: FinRecurring) {
-    // Advance next_date by one period
+    const today = new Date().toISOString().split("T")[0]!;
+
+    // 1. Log a transaction for this payment (if it has an account)
+    if (r.account_id) {
+      await fetch("/api/finance/transactions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          date:       today,
+          type:       r.type,           // "expense" or "income"
+          category:   r.category,
+          merchant:   r.name,
+          amount:     r.amount,
+          account_id: r.account_id,
+          note:       `Auto-logged from recurring: ${r.name}`,
+        }),
+      });
+    }
+
+    // 2. Advance next_date by one period
     const current = new Date(r.next_date + "T12:00:00");
     const next = new Date(current);
     if (r.frequency === "weekly")       next.setDate(next.getDate() + 7);
     else if (r.frequency === "monthly") next.setMonth(next.getMonth() + 1);
     else if (r.frequency === "yearly")  next.setFullYear(next.getFullYear() + 1);
     else if (r.frequency === "daily")   next.setDate(next.getDate() + 1);
-    else                                next.setMonth(next.getMonth() + 1); // default monthly
+    else                                next.setMonth(next.getMonth() + 1);
     const nextStr = next.toISOString().split("T")[0]!;
     await fetch(`/api/finance/recurring?id=${r.id}`, {
       method: "PATCH", headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ next_date: nextStr }),
     });
+
     await loadAll();
   }
 
