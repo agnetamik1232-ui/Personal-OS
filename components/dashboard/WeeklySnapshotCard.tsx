@@ -7,7 +7,7 @@ import type { FinSummary }     from "@/lib/finance/types";
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 function fmt(n: number) {
-  return "€" + new Intl.NumberFormat("en-IE", { maximumFractionDigits: 0 }).format(Math.abs(n));
+  return "€" + new Intl.NumberFormat("en-IE", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(Math.abs(n));
 }
 
 function weekStart(): string {

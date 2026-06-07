@@ -25,7 +25,7 @@ function fmtDate(): string {
 }
 
 function fmt(n: number) {
-  return "€" + new Intl.NumberFormat("en-IE", { maximumFractionDigits: 0 }).format(n);
+  return "€" + new Intl.NumberFormat("en-IE", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n);
 }
 
 function daysUntilPayday(): number {

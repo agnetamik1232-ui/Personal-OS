@@ -31,7 +31,7 @@ function uid() { return Math.random().toString(36).slice(2, 10); }
 function fmt(v: number, currency: string) {
   return new Intl.NumberFormat("en-GB", {
     style: "currency", currency,
-    maximumFractionDigits: 0,
+    minimumFractionDigits: 2, maximumFractionDigits: 2,
   }).format(v);
 }
 

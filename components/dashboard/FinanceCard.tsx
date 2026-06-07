@@ -46,7 +46,7 @@ function fmt(v: number, currency: string) {
     style:                 "currency",
     currency,
     notation:              Math.abs(v) >= 1_000_000 ? "compact" : "standard",
-    maximumFractionDigits: 0,
+    minimumFractionDigits: 2, maximumFractionDigits: 2,
   }).format(v);
 }
 
